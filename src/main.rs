@@ -34,7 +34,7 @@ struct Player {
 
 impl Player {
     fn grounded(&self) -> bool {
-        self.velocity.y == 0.0
+        self.velocity.y.abs() < 0.1
     }
 
     fn speed(&self) -> f32 {
@@ -118,8 +118,31 @@ impl Player {
         }
         // Apply new Position
         self.position += displacement;
+
+        // Reset if it falls
+        if self.position.y < -(WORLD_HEIGTH) {
+            self.position = Vec2::new(0.0, 0.0);
+        }
     }
+
+    // fn state(&self) -> PlayerState {
+    //     use PlayerState::*;
+    //     match self.velocity {
+    //         v if v.y.abs() > 0.1 => Jumping,
+    //         v if v.x > 0.1 => WalkingRight,
+    //         v if v.x < -0.1 => WalkingLeft,
+    //         _ => Standing,
+    //     }
+    // }
 }
+
+// #[derive(Debug)]
+// enum PlayerState {
+//     WalkingLeft,
+//     WalkingRight,
+//     Jumping,
+//     Standing,
+// }
 
 fn collides(pos1: Vec2, rect1: (f32, f32), pos2: Vec2, rect2: (f32, f32)) -> bool {
     (pos1.x - pos2.x).abs() < (rect1.0 + rect2.0) / 2.0
@@ -133,7 +156,12 @@ fn to_pixels(point: Vec2, screen_size: (u32, u32)) -> (i32, i32) {
     (t.0 as i32, t.1 as i32)
 }
 
-fn render(canvas: &mut WindowCanvas, player: &Player, level: &Level) -> Result<(), String> {
+fn render(
+    canvas: &mut WindowCanvas,
+    camera: Vec2,
+    player: &Player,
+    level: &Level,
+) -> Result<(), String> {
     canvas.set_draw_color(Color::GRAY);
     canvas.clear();
 
@@ -179,9 +207,9 @@ fn main() -> Result<(), String> {
     let mut timer = Instant::now();
 
     let mut player = Player {
-        position: Vec2::new(0.0, 0.0), //
-        side: Vec2::new(1.0, 2.0),     //
-        velocity: Vec2::new(0.0, 0.0), //
+        position: Vec2::new(0.0, 0.0),
+        side: Vec2::new(0.9, 2.0),
+        velocity: Vec2::new(0.0, 0.0),
     };
 
     let level = Level::new("level.txt", (WORLD_WIDTH, WORLD_HEIGTH)).expect("Error loading level");
@@ -210,8 +238,9 @@ fn main() -> Result<(), String> {
         player.input(keys, elapsed);
 
         player.update(elapsed, &level);
+        let camera = player.position.clone();
 
-        render(&mut canvas, &player, &level)?;
+        render(&mut canvas, camera, &player, &level)?;
     }
 
     Ok(())
