@@ -52,9 +52,12 @@ impl Player {
         }
     }
 
-    fn drag(&self) -> Vec2 {
+    fn drag(&mut self, elapsed: f32) {
         let drag = if self.grounded() { DRAG } else { DRAG / 4.0 };
-        Vec2::new(-drag * self.velocity.x, 0.0)
+        self.accelerate(Vec2::new(-drag * self.velocity.x, 0.0), elapsed);
+        if self.velocity.x.abs() < 0.01 {
+            self.velocity.x = 0.0;
+        }
     }
 
     fn input(&mut self, keys: HashSet<Keycode>, elapsed: f32) {
@@ -80,10 +83,7 @@ impl Player {
         // Gravity
         self.accelerate(GRAVITY, elapsed);
         // Drag
-        self.accelerate(self.drag(), elapsed);
-        if self.velocity.x.abs() < 0.01 {
-            self.velocity.x = 0.0;
-        }
+        self.drag(elapsed);
 
         self.position += self.velocity * elapsed;
 
