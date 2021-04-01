@@ -77,7 +77,6 @@ impl Player {
     }
 
     fn update(&mut self, elapsed: f32) {
-        println!("Grounded: {}", self.grounded());
         // Gravity
         self.accelerate(GRAVITY, elapsed);
         // Drag
