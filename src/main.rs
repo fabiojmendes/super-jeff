@@ -82,20 +82,48 @@ impl Player {
         }
     }
 
-    fn update(&mut self, elapsed: f32) {
+    fn update(&mut self, elapsed: f32, level: &Level) {
         // Gravity
         self.accelerate(GRAVITY, elapsed);
         // Drag
         self.drag(elapsed);
 
-        self.position += self.velocity * elapsed;
+        let mut displacement = self.velocity * elapsed;
 
-        // Hit the ground
-        if self.position.y < 0.0 {
-            self.position.y = 0.0;
-            self.velocity.y = 0.0;
+        // Check for collisions
+        for t in &level.tiles {
+            let x_collision = collides(
+                self.position + Vec2::new(displacement.x, 0.0),
+                self.side.into(),
+                t.position,
+                (t.side, t.side),
+            );
+
+            if x_collision {
+                displacement.x = 0.0;
+                self.velocity.x = 0.0;
+            }
+
+            let y_collision = collides(
+                self.position + Vec2::new(0.0, displacement.y),
+                self.side.into(),
+                t.position,
+                (t.side, t.side),
+            );
+
+            if y_collision {
+                displacement.y = 0.0;
+                self.velocity.y = 0.0;
+            }
         }
+        // Apply new Position
+        self.position += displacement;
     }
+}
+
+fn collides(pos1: Vec2, rect1: (f32, f32), pos2: Vec2, rect2: (f32, f32)) -> bool {
+    (pos1.x - pos2.x).abs() < (rect1.0 + rect2.0) / 2.0
+        && (pos1.y - pos2.y).abs() < (rect1.1 + rect2.1) / 2.0
 }
 
 fn to_pixels(point: Vec2, screen_size: (u32, u32)) -> (i32, i32) {
@@ -105,31 +133,26 @@ fn to_pixels(point: Vec2, screen_size: (u32, u32)) -> (i32, i32) {
     (t.0 as i32, t.1 as i32)
 }
 
-fn render(canvas: &mut WindowCanvas, square: &Player, level: &Level) -> Result<(), String> {
+fn render(canvas: &mut WindowCanvas, player: &Player, level: &Level) -> Result<(), String> {
     canvas.set_draw_color(Color::GRAY);
     canvas.clear();
 
     let size = canvas.output_size()?;
     let scale = size.0 as f32 / WORLD_WIDTH;
 
-    for (i, c) in level.data.chars().enumerate() {
-        let map_color = match c {
-            '#' => Color::RGB(127, 0, 0),
-            _ => Color::GRAY,
-        };
-        let i = i as i32;
-        canvas.set_draw_color(map_color);
-        canvas.fill_rect(Rect::new(
-            (i % level.width) * scale as i32,
-            (i / level.width) * scale as i32,
-            scale as u32,
-            scale as u32,
+    for t in &level.tiles {
+        canvas.set_draw_color(Color::RGB(127, 0, 0));
+        let pos = Point::from(to_pixels(t.position, size));
+        canvas.fill_rect(Rect::from_center(
+            pos,
+            (t.side * scale) as u32,
+            (t.side * scale) as u32,
         ))?;
     }
 
-    let p = Point::from(to_pixels(square.position, size));
-    canvas.set_draw_color(Color::RED);
-    let v = square.side * scale;
+    let p = Point::from(to_pixels(player.position, size));
+    canvas.set_draw_color(Color::BLUE);
+    let v = player.side * scale;
     canvas.fill_rect(Rect::from_center(p, v.x as u32, v.y as u32))?;
 
     canvas.present();
@@ -161,7 +184,7 @@ fn main() -> Result<(), String> {
         velocity: Vec2::new(0.0, 0.0), //
     };
 
-    let level = Level::new("level.txt").expect("Error loading level");
+    let level = Level::new("level.txt", (WORLD_WIDTH, WORLD_HEIGTH)).expect("Error loading level");
 
     let mut event_pump = sdl_context.event_pump()?;
     'running: loop {
@@ -174,8 +197,8 @@ fn main() -> Result<(), String> {
             }
         }
         let delta = timer.elapsed();
-        timer += delta;
         let elapsed = delta.as_millis() as f32 / 1000.0;
+        timer += delta;
 
         // Create a set of pressed Keys.
         let keys = event_pump
@@ -186,7 +209,7 @@ fn main() -> Result<(), String> {
 
         player.input(keys, elapsed);
 
-        player.update(elapsed);
+        player.update(elapsed, &level);
 
         render(&mut canvas, &player, &level)?;
     }
