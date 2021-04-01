@@ -9,6 +9,9 @@ use sdl2::render::WindowCanvas;
 
 use glam::{const_vec2, Vec2};
 
+mod level;
+use level::Level;
+
 const WORLD_WIDTH: f32 = 32.0;
 const WORLD_HEIGTH: f32 = 24.0;
 
@@ -43,7 +46,7 @@ impl Player {
     }
 
     fn accelerate(&mut self, vel: Vec2, elapsed: f32) {
-        self.velocity += vel  * elapsed;
+        self.velocity += vel * elapsed;
         if self.velocity.x.abs() > MAX_X_VELOCITY {
             self.velocity.x = MAX_X_VELOCITY.copysign(self.velocity.x);
         }
@@ -102,12 +105,27 @@ fn to_pixels(point: Vec2, screen_size: (u32, u32)) -> (i32, i32) {
     (t.0 as i32, t.1 as i32)
 }
 
-fn render(canvas: &mut WindowCanvas, square: &Player) -> Result<(), String> {
+fn render(canvas: &mut WindowCanvas, square: &Player, level: &Level) -> Result<(), String> {
     canvas.set_draw_color(Color::GRAY);
     canvas.clear();
 
     let size = canvas.output_size()?;
     let scale = size.0 as f32 / WORLD_WIDTH;
+
+    for (i, c) in level.data.chars().enumerate() {
+        let map_color = match c {
+            '#' => Color::RGB(127, 0, 0),
+            _ => Color::GRAY,
+        };
+        let i = i as i32;
+        canvas.set_draw_color(map_color);
+        canvas.fill_rect(Rect::new(
+            (i % level.width) * scale as i32,
+            (i / level.width) * scale as i32,
+            scale as u32,
+            scale as u32,
+        ))?;
+    }
 
     let p = Point::from(to_pixels(square.position, size));
     canvas.set_draw_color(Color::RED);
@@ -143,6 +161,8 @@ fn main() -> Result<(), String> {
         velocity: Vec2::new(0.0, 0.0), //
     };
 
+    let level = Level::new("level.txt").expect("Error loading level");
+
     let mut event_pump = sdl_context.event_pump()?;
     'running: loop {
         for event in event_pump.poll_iter() {
@@ -168,7 +188,7 @@ fn main() -> Result<(), String> {
 
         player.update(elapsed);
 
-        render(&mut canvas, &player)?;
+        render(&mut canvas, &player, &level)?;
     }
 
     Ok(())
