@@ -16,14 +16,13 @@ const WORLD_WIDTH: f32 = 32.0;
 const WORLD_HEIGTH: f32 = 24.0;
 
 // Physics Constants
-const GRAVITY: Vec2 = const_vec2!([0.0, -10.0]);
+const GRAVITY: Vec2 = const_vec2!([0.0, -25.0]);
 
 const PLAYER_SPEED: f32 = 25.0;
-const JUMP_SPEED: f32 = 12.0;
+const JUMP_SPEED: f32 = 15.0;
 const DRAG: f32 = 10.0;
 
-const MAX_X_VELOCITY: f32 = 10.0;
-const MAX_Y_VELOCITY: f32 = 100.0;
+const MAX_VELOCITY: Vec2 = const_vec2!([10.0, 100.0]);
 
 #[derive(Debug)]
 struct Player {
@@ -47,12 +46,7 @@ impl Player {
 
     fn accelerate(&mut self, vel: Vec2, elapsed: f32) {
         self.velocity += vel * elapsed;
-        if self.velocity.x.abs() > MAX_X_VELOCITY {
-            self.velocity.x = MAX_X_VELOCITY.copysign(self.velocity.x);
-        }
-        if self.velocity.y.abs() > MAX_Y_VELOCITY {
-            self.velocity.y = MAX_Y_VELOCITY.copysign(self.velocity.y);
-        }
+        self.velocity.clamp(-MAX_VELOCITY, MAX_VELOCITY);
     }
 
     fn drag(&mut self, elapsed: f32) {
