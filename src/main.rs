@@ -34,7 +34,7 @@ struct Player {
 
 impl Player {
     fn grounded(&self) -> bool {
-        self.velocity.y.abs() < 0.1
+        self.velocity.y.abs() == 0.0
     }
 
     fn speed(&self) -> f32 {
@@ -149,9 +149,10 @@ fn collides(pos1: Vec2, rect1: (f32, f32), pos2: Vec2, rect2: (f32, f32)) -> boo
         && (pos1.y - pos2.y).abs() < (rect1.1 + rect2.1) / 2.0
 }
 
-fn to_pixels(point: Vec2, screen_size: (u32, u32)) -> (i32, i32) {
+fn to_pixels(point: Vec2, camera: Vec2, screen_size: (u32, u32)) -> (i32, i32) {
     let w = screen_size.0 as f32;
     let h = screen_size.1 as f32;
+    let point = point - camera;
     let t = (w / 2.0 + w * point.x / WORLD_WIDTH, h / 2.0 - h * point.y / WORLD_HEIGTH);
     (t.0 as i32, t.1 as i32)
 }
@@ -170,7 +171,7 @@ fn render(
 
     for t in &level.tiles {
         canvas.set_draw_color(Color::RGB(127, 0, 0));
-        let pos = Point::from(to_pixels(t.position, size));
+        let pos = Point::from(to_pixels(t.position, camera, size));
         canvas.fill_rect(Rect::from_center(
             pos,
             (t.side * scale) as u32,
@@ -178,7 +179,7 @@ fn render(
         ))?;
     }
 
-    let p = Point::from(to_pixels(player.position, size));
+    let p = Point::from(to_pixels(player.position, camera, size));
     canvas.set_draw_color(Color::BLUE);
     let v = player.side * scale;
     canvas.fill_rect(Rect::from_center(p, v.x as u32, v.y as u32))?;
@@ -208,7 +209,7 @@ fn main() -> Result<(), String> {
 
     let mut player = Player {
         position: Vec2::new(0.0, 0.0),
-        side: Vec2::new(0.9, 2.0),
+        side: Vec2::new(0.9, 1.8),
         velocity: Vec2::new(0.0, 0.0),
     };
 
@@ -238,7 +239,20 @@ fn main() -> Result<(), String> {
         player.input(keys, elapsed);
 
         player.update(elapsed, &level);
-        let camera = player.position.clone();
+
+        let mut camera = player.position.clone();
+        if camera.x < 0.0 {
+            camera.x = 0.0;
+        }
+        if camera.x > level.width as f32 - WORLD_WIDTH {
+            camera.x = level.width as f32 - WORLD_WIDTH;
+        }
+        if camera.y < 0.0 {
+            camera.y = 0.0;
+        }
+        if camera.y > level.height as f32 - WORLD_HEIGTH {
+            camera.y = level.height as f32 - WORLD_HEIGTH;
+        }
 
         render(&mut canvas, camera, &player, &level)?;
     }
