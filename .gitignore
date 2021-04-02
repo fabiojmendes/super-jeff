@@ -1,2 +1,3 @@
 /target
-SDL2.dll
+/env.ps1
+/SDL2.dll
