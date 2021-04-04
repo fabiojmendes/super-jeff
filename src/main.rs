@@ -57,6 +57,11 @@ impl Player {
         }
     }
 
+    fn die(&mut self) {
+        self.velocity = Vec2::new(0.0, 0.0);
+        self.position = Vec2::new(0.0, 0.0);
+    }
+
     fn update(&mut self, keys: &HashSet<Keycode>, elapsed: f32, level: &Level) {
         // Drag
         self.apply_drag(elapsed);
@@ -113,9 +118,15 @@ impl Player {
         // Apply new Position
         self.position += displacement;
 
+        for e in &level.enemies {
+            if collides(self.position, self.side.into(), e.position, e.side.into()) {
+                self.die();
+            }
+        }
+
         // Reset if it falls
         if self.position.y < -(WORLD_HEIGTH) {
-            self.position = Vec2::new(0.0, 0.0);
+            self.die();
         }
     }
 
@@ -173,6 +184,13 @@ fn render(
         ))?;
     }
 
+    for e in &level.enemies {
+        let p = Point::from(to_pixels(e.position, camera, size));
+        canvas.set_draw_color(Color::BLACK);
+        let rect = e.side * scale;
+        canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
+    }
+
     let p = Point::from(to_pixels(player.position, camera, size));
     canvas.set_draw_color(Color::BLUE);
     let rect = player.side * scale;
@@ -207,7 +225,7 @@ fn main() -> Result<(), String> {
         velocity: Vec2::new(0.0, 0.0),
     };
 
-    let level = Level::from_file("level.txt", (WORLD_WIDTH, WORLD_HEIGTH))
+    let mut level = Level::from_file("level.txt", (WORLD_WIDTH, WORLD_HEIGTH))
         .expect("Error loading level from file");
 
     let mut event_pump = sdl_context.event_pump()?;
@@ -232,6 +250,8 @@ fn main() -> Result<(), String> {
             .collect();
 
         player.update(&keys, elapsed, &level);
+
+        level.update(elapsed);
 
         let mut camera = player.position.clone();
         if camera.x < 0.0 {
