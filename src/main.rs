@@ -18,9 +18,9 @@ const WORLD_HEIGTH: f32 = 24.0;
 // Physics Constants
 const GRAVITY: Vec2 = const_vec2!([0.0, -25.0]);
 
-const PLAYER_SPEED: f32 = 25.0;
+const PLAYER_SPEED: f32 = 30.0;
 const JUMP_SPEED: f32 = 15.0;
-const DRAG: f32 = 10.0;
+const DRAG: f32 = 3.0;
 
 const MAX_VELOCITY: Vec2 = const_vec2!([10.0, 100.0]);
 
@@ -33,31 +33,35 @@ struct Player {
 
 impl Player {
     fn grounded(&self) -> bool {
-        self.velocity.y.abs() == 0.0
+        self.velocity.y == 0.0
     }
 
     fn speed(&self) -> f32 {
         if self.grounded() {
             PLAYER_SPEED
         } else {
-            PLAYER_SPEED / 2.5
+            PLAYER_SPEED / 4.0
         }
     }
 
     fn accelerate(&mut self, vel: Vec2, elapsed: f32) {
         self.velocity += vel * elapsed;
-        self.velocity.clamp(-MAX_VELOCITY, MAX_VELOCITY);
+        self.velocity = self.velocity.clamp(-MAX_VELOCITY, MAX_VELOCITY);
     }
 
-    fn drag(&mut self, elapsed: f32) {
-        let drag = if self.grounded() { DRAG } else { DRAG / 4.0 };
+    fn apply_drag(&mut self, elapsed: f32) {
+        let drag = if self.grounded() { DRAG } else { 0.0 };
         self.accelerate(Vec2::new(-drag * self.velocity.x, 0.0), elapsed);
-        if self.velocity.x.abs() < 0.01 {
+        if self.velocity.x.abs() < 0.1 {
             self.velocity.x = 0.0;
         }
     }
 
-    fn input(&mut self, keys: HashSet<Keycode>, elapsed: f32) {
+    fn update(&mut self, keys: &HashSet<Keycode>, elapsed: f32, level: &Level) {
+        // Drag
+        self.apply_drag(elapsed);
+
+        // Input
         for key in keys {
             match key {
                 Keycode::Left => {
@@ -74,13 +78,9 @@ impl Player {
                 _ => {}
             }
         }
-    }
 
-    fn update(&mut self, elapsed: f32, level: &Level) {
         // Gravity
         self.accelerate(GRAVITY, elapsed);
-        // Drag
-        self.drag(elapsed);
 
         let mut displacement = self.velocity * elapsed;
 
@@ -175,8 +175,8 @@ fn render(
 
     let p = Point::from(to_pixels(player.position, camera, size));
     canvas.set_draw_color(Color::BLUE);
-    let v = player.side * scale;
-    canvas.fill_rect(Rect::from_center(p, v.x as u32, v.y as u32))?;
+    let rect = player.side * scale;
+    canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
 
     canvas.present();
 
@@ -207,7 +207,8 @@ fn main() -> Result<(), String> {
         velocity: Vec2::new(0.0, 0.0),
     };
 
-    let level = Level::from_file("level.txt", (WORLD_WIDTH, WORLD_HEIGTH)).expect("Error loading level");
+    let level = Level::from_file("level.txt", (WORLD_WIDTH, WORLD_HEIGTH))
+        .expect("Error loading level from file");
 
     let mut event_pump = sdl_context.event_pump()?;
     'running: loop {
@@ -230,9 +231,7 @@ fn main() -> Result<(), String> {
             .filter_map(Keycode::from_scancode)
             .collect();
 
-        player.input(keys, elapsed);
-
-        player.update(elapsed, &level);
+        player.update(&keys, elapsed, &level);
 
         let mut camera = player.position.clone();
         if camera.x < 0.0 {
