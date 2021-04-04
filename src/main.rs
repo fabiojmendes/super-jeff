@@ -207,7 +207,7 @@ fn main() -> Result<(), String> {
         velocity: Vec2::new(0.0, 0.0),
     };
 
-    let level = Level::new("level.txt", (WORLD_WIDTH, WORLD_HEIGTH)).expect("Error loading level");
+    let level = Level::from_file("level.txt", (WORLD_WIDTH, WORLD_HEIGTH)).expect("Error loading level");
 
     let mut event_pump = sdl_context.event_pump()?;
     'running: loop {

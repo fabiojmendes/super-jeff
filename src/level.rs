@@ -1,6 +1,5 @@
-use std::fs::File;
+use std::fs;
 use std::io;
-use std::io::prelude::*;
 use std::vec::Vec;
 
 use glam::Vec2;
@@ -21,36 +20,36 @@ pub struct Level {
 }
 
 impl Level {
-    pub fn new(filename: &str, world_size: (f32, f32)) -> io::Result<Level> {
-        let file = File::open(filename)?;
-        let reader = io::BufReader::new(file);
+    pub fn new() -> Level {
+        Level { width: 0, height: 0, tiles: Vec::new() }
+    }
 
-        let mut width = 0;
-        let mut height = 0;
-
+    pub fn from_file(filename: &str, world_size: (f32, f32)) -> io::Result<Level> {
         let tile_offset = TILE_SIDE / 2.0;
         let (x_offset, y_offset) = (world_size.0 / 2.0, world_size.1 / 2.0);
 
-        let mut tiles = Vec::new();
-        for (y, line) in reader.lines().filter_map(|l| l.ok()).enumerate() {
-            for (x, c) in line.chars().enumerate() {
-                match c {
-                    '#' => {
-                        let (x, y) = (
-                            x as f32 - x_offset + tile_offset,
-                            -(y as f32) + y_offset - tile_offset,
-                        );
-                        tiles.push(Tile { position: Vec2::new(x, y), side: TILE_SIDE });
-                    }
-                    _ => {}
-                }
-            }
-            if width == 0 {
-                width = line.len() as i32;
-            }
-            height += 1;
-        }
+        let level_str = fs::read_to_string(filename)?;
 
-        Ok(Level { width, height, tiles })
+        let level = level_str
+            .lines()
+            .enumerate()
+            .flat_map(|(y, line)| line.char_indices().map(move |(x, c)| (x, y, c)))
+            .filter_map(|(x, y, c)| {
+                let (tx, ty) =
+                    (x as f32 - x_offset + tile_offset, -(y as f32) + y_offset - tile_offset);
+                match c {
+                    '#' => Some((x, y, Tile { position: Vec2::new(tx, ty), side: TILE_SIDE })),
+                    _ => None,
+                }
+            })
+            .fold(Level::new(), |level, (x, y, tile)| {
+                let mut level = level;
+                level.width = level.width.max(x as i32);
+                level.height = level.height.max(y as i32);
+                level.tiles.push(tile);
+                level
+            });
+
+        Ok(level)
     }
 }
