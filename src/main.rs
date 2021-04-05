@@ -31,11 +31,12 @@ struct Player {
     position: Vec2,
     side: Vec2,
     velocity: Vec2,
+    grounded: bool,
 }
 
 impl Player {
     fn grounded(&self) -> bool {
-        self.velocity.y == 0.0
+        self.grounded
     }
 
     fn speed(&self) -> f32 {
@@ -91,6 +92,7 @@ impl Player {
 
         let mut displacement = self.velocity * elapsed;
 
+        self.grounded = false;
         // Check for collisions
         for t in &level.tiles {
             let x_collision = physics::collides(
@@ -115,6 +117,7 @@ impl Player {
             if y_collision {
                 displacement.y = 0.0;
                 self.velocity.y = 0.0;
+                self.grounded = true;
             }
         }
         // Apply new Position
@@ -220,6 +223,7 @@ fn main() -> Result<(), String> {
         position: Vec2::new(0.0, 0.0),
         side: Vec2::new(0.9, 1.8),
         velocity: Vec2::new(0.0, 0.0),
+        grounded: false,
     };
 
     let mut level = Level::from_file("level.txt", (WORLD_WIDTH, WORLD_HEIGTH))
