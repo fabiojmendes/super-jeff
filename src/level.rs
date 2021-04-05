@@ -24,8 +24,7 @@ pub struct Tile {
 
 #[derive(Debug)]
 pub struct Level {
-    pub width: i32,
-    pub height: i32,
+    pub bounds:Vec2,
     pub tiles: Vec<Tile>,
     pub enemies: Vec<Enemy>,
     pub spawn: Vec2,
@@ -64,7 +63,7 @@ impl Level {
 
 impl Level {
     pub fn new() -> Level {
-        Level { width: 0, height: 0, tiles: Vec::new(), enemies: Vec::new(), spawn: Vec2::ZERO }
+        Level { bounds: Vec2::ZERO, tiles: Vec::new(), enemies: Vec::new(), spawn: Vec2::ZERO }
     }
 
     pub fn from_file(filename: &str) -> io::Result<Level> {
@@ -79,24 +78,24 @@ impl Level {
             .collect();
 
         for (x, y, _) in &level_coords {
-            level.width = level.width.max(*x as i32 + 1);
-            level.height = level.height.max(*y as i32 + 1);
+            level.bounds.x = level.bounds.x.max((*x + 1) as f32);
+            level.bounds.y = level.bounds.y.max((*y + 1) as f32);
         }
 
-        let tile_offset = TILE_SIDE / 2.0;
-        let (x_offset, y_offset) = (level.width as f32 / 2.0, level.height as f32 / 2.0);
+        let tile_offset = Vec2::new(TILE_SIDE / 2.0, -TILE_SIDE / 2.0);
+        let offset = level.bounds / 2.0;
 
         for (x, y, c) in level_coords {
-            let (world_x, world_y) = (x as f32 - x_offset, -(y as f32) + y_offset);
+            let world_pos = Vec2::new(x as f32 - offset.x, -(y as f32) + offset.y);
             match c {
                 '#' => {
                     level.tiles.push(Tile {
-                        position: Vec2::new(world_x + tile_offset, world_y - tile_offset),
+                        position: world_pos + tile_offset,
                         side: TILE_SIDE,
                     });
                 }
                 'E' => {
-                    let position = Vec2::new(world_x, world_y);
+                    let position = world_pos;
                     level.enemies.push(Enemy {
                         position: position,
                         start_pos: position,
@@ -105,7 +104,7 @@ impl Level {
                     });
                 }
                 'S' => {
-                    let position = Vec2::new(world_x, world_y);
+                    let position = world_pos;
                     level.spawn = position;
                 }
                 _ => {}

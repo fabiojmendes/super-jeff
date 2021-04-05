@@ -145,7 +145,7 @@ impl Player {
         }
 
         // Reset if it falls
-        if self.position.y < -(level.height as f32) {
+        if self.position.y < -(level.bounds.y) {
             self.die(level.spawn);
         }
     }
@@ -185,10 +185,9 @@ impl Camera {
         (t.0 as i32, t.1 as i32)
     }
 
-    fn recenter(&mut self, position: Vec2, level_bounds: (f32, f32)) {
+    fn recenter(&mut self, position: Vec2, level_bounds: Vec2) {
         self.center = position;
         // Clamp camera position
-        let level_bounds = Vec2::from(level_bounds);
         let max = level_bounds / 2.0 - self.bounds / 2.0;
         self.center = self.center.clamp(-max, max);
     }
@@ -305,7 +304,7 @@ fn main() -> Result<(), String> {
 
         level.update(elapsed);
 
-        camera.recenter(player.position, (level.width as f32, level.height as f32));
+        camera.recenter(player.position, level.bounds);
 
         render(&mut canvas, &camera, &player, &level)?;
     }
