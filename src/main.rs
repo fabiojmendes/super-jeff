@@ -60,9 +60,9 @@ impl Player {
         }
     }
 
-    fn die(&mut self) {
-        self.velocity = Vec2::new(0.0, 0.0);
-        self.position = Vec2::new(0.0, 0.0);
+    fn die(&mut self, spawn: Vec2) {
+        self.velocity = Vec2::ZERO;
+        self.position = spawn;
     }
 
     fn foot_rect(&self) -> (Vec2, Vec2) {
@@ -140,13 +140,13 @@ impl Player {
 
         for e in &level.enemies {
             if physics::collides(self.position, self.side.into(), e.position, e.side.into()) {
-                self.die();
+                self.die(level.spawn);
             }
         }
 
         // Reset if it falls
         if self.position.y < -(level.height as f32) {
-            self.die();
+            self.die(level.spawn);
         }
     }
 
@@ -240,15 +240,15 @@ fn main() -> Result<(), String> {
 
     let mut timer = Instant::now();
 
+    let mut level = Level::from_file("level.txt", (WORLD_WIDTH, WORLD_HEIGTH))
+    .expect("Error loading level from file");
+
     let mut player = Player {
-        position: Vec2::new(0.0, 0.0),
+        position: level.spawn,
         side: Vec2::new(0.9, 1.8),
         velocity: Vec2::new(0.0, 0.0),
         grounded: false,
     };
-
-    let mut level = Level::from_file("level.txt", (WORLD_WIDTH, WORLD_HEIGTH))
-        .expect("Error loading level from file");
 
     let mut event_pump = sdl_context.event_pump()?;
     'running: loop {

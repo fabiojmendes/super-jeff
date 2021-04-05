@@ -28,6 +28,7 @@ pub struct Level {
     pub height: i32,
     pub tiles: Vec<Tile>,
     pub enemies: Vec<Enemy>,
+    pub spawn: Vec2,
 }
 
 impl Level {
@@ -63,7 +64,7 @@ impl Level {
 
 impl Level {
     pub fn new() -> Level {
-        Level { width: 0, height: 0, tiles: Vec::new(), enemies: Vec::new() }
+        Level { width: 0, height: 0, tiles: Vec::new(), enemies: Vec::new(), spawn: Vec2::ZERO }
     }
 
     pub fn from_file(filename: &str, world_size: (f32, f32)) -> io::Result<Level> {
@@ -97,6 +98,10 @@ impl Level {
                             velocity: Vec2::new(-5.0, 0.0),
                             side: Vec2::new(1.0, 2.0),
                         });
+                    }
+                    'S' => {
+                        let position = Vec2::new(x as f32 - x_offset + 0.5, -(y as f32) + y_offset);
+                        level.spawn = position;
                     }
                     _ => {}
                 }
