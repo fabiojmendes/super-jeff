@@ -1,15 +1,15 @@
 [package]
-name = "super-jeff"
-version = "0.1.0"
 authors = ["Fabio Mendes <fabiojmendes@gmail.com>"]
 edition = "2018"
+name = "super-jeff"
+version = "0.1.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-glam = "0.13"
-
 [dependencies.sdl2]
 default-features = false
 features = ["image"]
 version = "0.34"
+
+[dependencies]
+glam = "0.13"
+rand = "0.8"

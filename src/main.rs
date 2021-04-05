@@ -12,6 +12,8 @@ use glam::{const_vec2, Vec2};
 mod level;
 use level::Level;
 
+mod physics;
+
 const WORLD_WIDTH: f32 = 32.0;
 const WORLD_HEIGTH: f32 = 24.0;
 
@@ -91,7 +93,7 @@ impl Player {
 
         // Check for collisions
         for t in &level.tiles {
-            let x_collision = collides(
+            let x_collision = physics::collides(
                 self.position + Vec2::new(displacement.x, 0.0),
                 self.side.into(),
                 t.position,
@@ -103,7 +105,7 @@ impl Player {
                 self.velocity.x = 0.0;
             }
 
-            let y_collision = collides(
+            let y_collision = physics::collides(
                 self.position + Vec2::new(0.0, displacement.y),
                 self.side.into(),
                 t.position,
@@ -119,7 +121,7 @@ impl Player {
         self.position += displacement;
 
         for e in &level.enemies {
-            if collides(self.position, self.side.into(), e.position, e.side.into()) {
+            if physics::collides(self.position, self.side.into(), e.position, e.side.into()) {
                 self.die();
             }
         }
@@ -148,11 +150,6 @@ impl Player {
 //     Jumping,
 //     Standing,
 // }
-
-fn collides(pos1: Vec2, rect1: (f32, f32), pos2: Vec2, rect2: (f32, f32)) -> bool {
-    (pos1.x - pos2.x).abs() < (rect1.0 + rect2.0) / 2.0
-        && (pos1.y - pos2.y).abs() < (rect1.1 + rect2.1) / 2.0
-}
 
 fn to_pixels(point: Vec2, camera: Vec2, screen_size: (u32, u32)) -> (i32, i32) {
     let w = screen_size.0 as f32;

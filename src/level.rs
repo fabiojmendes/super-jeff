@@ -4,9 +4,12 @@ use std::vec::Vec;
 
 use glam::Vec2;
 
+use crate::physics;
+
 #[derive(Debug)]
 pub struct Enemy {
     pub position: Vec2,
+    pub start_pos: Vec2,
     pub side: Vec2,
     pub velocity: Vec2,
 }
@@ -30,10 +33,26 @@ pub struct Level {
 impl Level {
     pub fn update(&mut self, elapsed: f32) {
         for e in &mut self.enemies {
-            e.velocity = Vec2::new(-5.0, 0.0);
+            let displacement = e.velocity * elapsed;
 
-            e.position += e.velocity * elapsed;
+            let mut x_collision = false;
+            let mut y_collision = false;
+            for t in &self.tiles {
+                let future_x_pos = e.position + displacement;
+                if physics::collides(future_x_pos, e.side.into(), t.position, (t.side, t.side)) {
+                    x_collision = true;
+                    break;
+                }
 
+                let future_y_pos = e.position + displacement + Vec2::new(0.0, -0.1);
+                y_collision |=
+                    physics::collides(future_y_pos, e.side.into(), t.position, (t.side, t.side));
+            }
+            if x_collision || !y_collision {
+                e.velocity = -e.velocity
+            }
+            let displacement = e.velocity * elapsed;
+            e.position += displacement;
         }
     }
 }
@@ -58,16 +77,20 @@ impl Level {
             .for_each(|(x, y, c)| {
                 level.width = level.width.max(x as i32 + 1);
                 level.height = level.height.max(y as i32 + 1);
-                let (tx, ty) =
-                    (x as f32 - x_offset + tile_offset, -(y as f32) + y_offset - tile_offset);
+                let (tx, ty) = (x as f32 - x_offset, -(y as f32) + y_offset);
                 match c {
                     '#' => {
-                        level.tiles.push(Tile { position: Vec2::new(tx, ty), side: TILE_SIDE });
+                        level.tiles.push(Tile {
+                            position: Vec2::new(tx + tile_offset, ty - tile_offset),
+                            side: TILE_SIDE,
+                        });
                     }
                     'E' => {
+                        let position = Vec2::new(x as f32 - x_offset + 0.5, -(y as f32) + y_offset);
                         level.enemies.push(Enemy {
-                            position: Vec2::new(x as f32 - x_offset + 0.5, -(y as f32) + y_offset),
-                            velocity: Vec2::new(0.0, 0.0),
+                            position: position,
+                            start_pos: position,
+                            velocity: Vec2::new(-5.0, 0.0),
                             side: Vec2::new(1.0, 2.0),
                         });
                     }
