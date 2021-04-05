@@ -135,6 +135,15 @@ impl Player {
             }
         }
 
+        if physics::collides(
+            self.position,
+            self.side.into(),
+            level.monkey.position,
+            level.monkey.sides.into(),
+        ) {
+            self.die(level.spawn);
+        }
+
         // Reset if it falls
         if self.position.y < -(level.bounds.y) {
             self.die(level.spawn);

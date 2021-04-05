@@ -7,6 +7,19 @@ use glam::Vec2;
 use crate::physics;
 
 #[derive(Debug)]
+pub struct Monkey {
+    pub position: Vec2,
+    pub sides: Vec2,
+    pub velocity: Vec2,
+}
+
+impl Monkey {
+    fn new() -> Monkey {
+        Monkey { position: Vec2::ZERO, sides: Vec2::new(2.0, 4.0), velocity: Vec2::ZERO }
+    }
+}
+
+#[derive(Debug)]
 pub struct Enemy {
     pub position: Vec2,
     pub start_pos: Vec2,
@@ -28,6 +41,7 @@ pub struct Level {
     pub tiles: Vec<Tile>,
     pub enemies: Vec<Enemy>,
     pub spawn: Vec2,
+    pub monkey: Monkey,
 }
 
 impl Level {
@@ -48,7 +62,8 @@ impl Level {
                     break;
                 }
 
-                let future_y_pos = e.position + (displacement * 15.0) + Vec2::new(0.0, -0.1);
+                let future_y_pos =
+                    e.position + (Vec2::X * displacement.signum()) + Vec2::new(0.0, -0.2);
                 y_collision |=
                     physics::collides(future_y_pos, e.side.into(), t.position, (t.side, t.side));
             }
@@ -63,7 +78,13 @@ impl Level {
 
 impl Level {
     pub fn new() -> Level {
-        Level { bounds: Vec2::ZERO, tiles: Vec::new(), enemies: Vec::new(), spawn: Vec2::ZERO }
+        Level {
+            bounds: Vec2::ZERO,
+            tiles: Vec::new(),
+            enemies: Vec::new(),
+            monkey: Monkey::new(),
+            spawn: Vec2::ZERO,
+        }
     }
 
     pub fn from_file(filename: &str) -> io::Result<Level> {
@@ -92,17 +113,18 @@ impl Level {
                     level.tiles.push(Tile { position: world_pos + tile_offset, side: TILE_SIDE });
                 }
                 'E' => {
-                    let position = world_pos;
                     level.enemies.push(Enemy {
-                        position: position,
-                        start_pos: position,
+                        position: world_pos,
+                        start_pos: world_pos,
                         velocity: Vec2::new(-5.0, 0.0),
                         side: Vec2::new(1.0, 2.0),
                     });
                 }
+                'M' => {
+                    level.monkey.position = world_pos + Vec2::Y;
+                }
                 'S' => {
-                    let position = world_pos;
-                    level.spawn = position;
+                    level.spawn = world_pos;
                 }
                 _ => {}
             }

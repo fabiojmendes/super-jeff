@@ -71,6 +71,11 @@ pub fn render(
         canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
     }
 
+    let p = Point::from(camera.to_pixels(level.monkey.position));
+    canvas.set_draw_color(Color::YELLOW);
+    let rect = level.monkey.sides * camera.scale();
+    canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
+
     let p = Point::from(camera.to_pixels(player.position));
     canvas.set_draw_color(Color::BLUE);
     let rect = player.side * camera.scale();
