@@ -38,13 +38,17 @@ impl Level {
             let mut x_collision = false;
             let mut y_collision = false;
             for t in &self.tiles {
-                let future_x_pos = e.position + displacement;
-                if physics::collides(future_x_pos, e.side.into(), t.position, (t.side, t.side)) {
+                if physics::collides(
+                    e.position + displacement,
+                    e.side.into(),
+                    t.position,
+                    (t.side, t.side),
+                ) {
                     x_collision = true;
                     break;
                 }
 
-                let future_y_pos = e.position + displacement + Vec2::new(0.0, -0.1);
+                let future_y_pos = e.position + (displacement * 15.0) + Vec2::new(0.0, -0.1);
                 y_collision |=
                     physics::collides(future_y_pos, e.side.into(), t.position, (t.side, t.side));
             }

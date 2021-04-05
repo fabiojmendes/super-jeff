@@ -65,7 +65,12 @@ impl Player {
         self.position = Vec2::new(0.0, 0.0);
     }
 
-    fn update(&mut self, keys: &HashSet<Keycode>, elapsed: f32, level: &Level) {
+    fn foot_rect(&self) -> (Vec2, Vec2) {
+        let foot = Vec2::new(self.position.x, self.position.y - self.side.y / 2.0 - 0.02);
+        (foot, Vec2::new(0.6, 0.05))
+    }
+
+    fn update(&mut self, keys: &HashSet<Keycode>, elapsed: f32, level: &mut Level) {
         // Drag
         self.apply_drag(elapsed);
 
@@ -117,11 +122,21 @@ impl Player {
             if y_collision {
                 displacement.y = 0.0;
                 self.velocity.y = 0.0;
+            }
+
+            // Foot Collision
+            let (foot_pos, foot_rect) = self.foot_rect();
+            if physics::collides(foot_pos, foot_rect.into(), t.position, (t.side, t.side)) {
                 self.grounded = true;
             }
         }
         // Apply new Position
         self.position += displacement;
+
+        let (foot_pos, foot_rect) = self.foot_rect();
+        level
+            .enemies
+            .retain(|e| !physics::collides(foot_pos, foot_rect.into(), e.position, e.side.into()));
 
         for e in &level.enemies {
             if physics::collides(self.position, self.side.into(), e.position, e.side.into()) {
@@ -130,7 +145,7 @@ impl Player {
         }
 
         // Reset if it falls
-        if self.position.y < -(WORLD_HEIGTH) {
+        if self.position.y < -(level.height as f32) {
             self.die();
         }
     }
@@ -196,6 +211,12 @@ fn render(
     let rect = player.side * scale;
     canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
 
+    let (foot_pos, foot_rect) = player.foot_rect();
+    let foot_point = Point::from(to_pixels(foot_pos, camera, size));
+    canvas.set_draw_color(Color::GREEN);
+    let rect = foot_rect * scale;
+    canvas.fill_rect(Rect::from_center(foot_point, rect.x as u32, rect.y as u32))?;
+
     canvas.present();
 
     Ok(())
@@ -250,7 +271,7 @@ fn main() -> Result<(), String> {
             .filter_map(Keycode::from_scancode)
             .collect();
 
-        player.update(&keys, elapsed, &level);
+        player.update(&keys, elapsed, &mut level);
 
         level.update(elapsed);
 
