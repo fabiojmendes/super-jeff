@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 mod level;
 mod physics;
 mod player;
@@ -35,7 +37,6 @@ fn main() -> Result<(), String> {
     let mut player = Player::new(level.spawn);
 
     let mut camera = Camera::new(canvas.output_size()?);
-    println!("Player {:?}, Camera {:?}", player, camera);
 
     let mut event_pump = sdl_context.event_pump()?;
     'running: loop {

@@ -108,14 +108,12 @@ impl Player {
             );
 
             if y_collision {
+                // Going down
+                if self.velocity.y < 0.0 {
+                    self.grounded = true;
+                }
                 displacement.y = 0.0;
                 self.velocity.y = 0.0;
-            }
-
-            // Foot Collision
-            let (foot_pos, foot_rect) = self.foot_rect();
-            if physics::collides(foot_pos, foot_rect.into(), t.position, (t.side, t.side)) {
-                self.grounded = true;
             }
         }
         // Apply new Position
