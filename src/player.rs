@@ -80,6 +80,11 @@ impl Player {
             }
         }
 
+        // Jump higher if key is held
+        if !keys.contains(&Keycode::Space) && self.velocity.y > 0.0 {
+            self.velocity.y = self.velocity.y.min(JUMP_SPEED / 2.0);
+        }
+
         // Gravity
         self.accelerate(physics::GRAVITY, elapsed);
 

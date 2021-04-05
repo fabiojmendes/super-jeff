@@ -24,7 +24,7 @@ pub struct Tile {
 
 #[derive(Debug)]
 pub struct Level {
-    pub bounds:Vec2,
+    pub bounds: Vec2,
     pub tiles: Vec<Tile>,
     pub enemies: Vec<Enemy>,
     pub spawn: Vec2,
@@ -89,10 +89,7 @@ impl Level {
             let world_pos = Vec2::new(x as f32 - offset.x, -(y as f32) + offset.y);
             match c {
                 '#' => {
-                    level.tiles.push(Tile {
-                        position: world_pos + tile_offset,
-                        side: TILE_SIDE,
-                    });
+                    level.tiles.push(Tile { position: world_pos + tile_offset, side: TILE_SIDE });
                 }
                 'E' => {
                     let position = world_pos;

@@ -82,9 +82,9 @@ pub fn render(
     let rect = foot_rect * camera.scale();
     canvas.fill_rect(Rect::from_center(foot_point, rect.x as u32, rect.y as u32))?;
 
-    let camera_point = Point::from(camera.to_pixels(camera.center));
-    canvas.set_draw_color(Color::RED);
-    canvas.fill_rect(Rect::from_center(camera_point, 16, 16))?;
+    // let camera_point = Point::from(camera.to_pixels(camera.center));
+    // canvas.set_draw_color(Color::RED);
+    // canvas.fill_rect(Rect::from_center(camera_point, 16, 16))?;
 
     canvas.present();
 
