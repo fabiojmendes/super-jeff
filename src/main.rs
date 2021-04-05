@@ -66,8 +66,8 @@ impl Player {
     }
 
     fn foot_rect(&self) -> (Vec2, Vec2) {
-        let foot = Vec2::new(self.position.x, self.position.y - self.side.y / 2.0 - 0.02);
-        (foot, Vec2::new(0.6, 0.05))
+        let foot = Vec2::new(self.position.x, self.position.y - self.side.y / 2.0 - 0.08);
+        (foot, Vec2::new(0.55, 0.05))
     }
 
     fn update(&mut self, keys: &HashSet<Keycode>, elapsed: f32, level: &mut Level) {
@@ -252,6 +252,7 @@ fn main() -> Result<(), String> {
 
     let mut event_pump = sdl_context.event_pump()?;
     'running: loop {
+        let bench = Instant::now();
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit { .. } | Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
@@ -289,6 +290,7 @@ fn main() -> Result<(), String> {
             camera.y = level.height as f32 - WORLD_HEIGTH;
         }
 
+        println!("Bench: {:?}", bench.elapsed());
         render(&mut canvas, camera, &player, &level)?;
     }
 
