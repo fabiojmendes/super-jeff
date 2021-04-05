@@ -14,8 +14,8 @@ use level::Level;
 
 mod physics;
 
-const WORLD_WIDTH: f32 = 32.0;
-const WORLD_HEIGTH: f32 = 24.0;
+const CAMERA_WIDTH: f32 = 32.0;
+const CAMERA_HEIGTH: f32 = 24.0;
 
 // Physics Constants
 const GRAVITY: Vec2 = const_vec2!([0.0, -25.0]);
@@ -169,53 +169,75 @@ impl Player {
 //     Standing,
 // }
 
-fn to_pixels(point: Vec2, camera: Vec2, screen_size: (u32, u32)) -> (i32, i32) {
-    let w = screen_size.0 as f32;
-    let h = screen_size.1 as f32;
-    let point = point - camera;
-    let t = (w / 2.0 + w * point.x / WORLD_WIDTH, h / 2.0 - h * point.y / WORLD_HEIGTH);
-    (t.0 as i32, t.1 as i32)
+#[derive(Debug)]
+struct Camera {
+    center: Vec2,
+    bounds: Vec2,
+    screen_size: (u32, u32),
+}
+
+impl Camera {
+    fn to_pixels(&self, point: Vec2) -> (i32, i32) {
+        let w = self.screen_size.0 as f32;
+        let h = self.screen_size.1 as f32;
+        let point = point - self.center;
+        let t = (w / 2.0 + w * point.x / self.bounds.x, h / 2.0 - h * point.y / self.bounds.y);
+        (t.0 as i32, t.1 as i32)
+    }
+
+    fn recenter(&mut self, position: Vec2, level_bounds: (f32, f32)) {
+        self.center = position;
+        // Clamp camera position
+        let level_bounds = Vec2::from(level_bounds);
+        let max = level_bounds / 2.0 - self.bounds / 2.0;
+        self.center = self.center.clamp(-max, max);
+    }
+
+    fn scale(&self) -> f32 {
+        self.screen_size.0 as f32 / self.bounds.x
+    }
 }
 
 fn render(
     canvas: &mut WindowCanvas,
-    camera: Vec2,
+    camera: &Camera,
     player: &Player,
     level: &Level,
 ) -> Result<(), String> {
     canvas.set_draw_color(Color::GRAY);
     canvas.clear();
 
-    let size = canvas.output_size()?;
-    let scale = size.0 as f32 / WORLD_WIDTH;
-
     for t in &level.tiles {
         canvas.set_draw_color(Color::RGB(127, 0, 0));
-        let pos = Point::from(to_pixels(t.position, camera, size));
+        let pos = Point::from(camera.to_pixels(t.position));
         canvas.fill_rect(Rect::from_center(
             pos,
-            (t.side * scale) as u32,
-            (t.side * scale) as u32,
+            (t.side * camera.scale()) as u32,
+            (t.side * camera.scale()) as u32,
         ))?;
     }
 
     for e in &level.enemies {
-        let p = Point::from(to_pixels(e.position, camera, size));
+        let p = Point::from(camera.to_pixels(e.position));
         canvas.set_draw_color(Color::BLACK);
-        let rect = e.side * scale;
+        let rect = e.side * camera.scale();
         canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
     }
 
-    let p = Point::from(to_pixels(player.position, camera, size));
+    let p = Point::from(camera.to_pixels(player.position));
     canvas.set_draw_color(Color::BLUE);
-    let rect = player.side * scale;
+    let rect = player.side * camera.scale();
     canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
 
     let (foot_pos, foot_rect) = player.foot_rect();
-    let foot_point = Point::from(to_pixels(foot_pos, camera, size));
+    let foot_point = Point::from(camera.to_pixels(foot_pos));
     canvas.set_draw_color(Color::GREEN);
-    let rect = foot_rect * scale;
+    let rect = foot_rect * camera.scale();
     canvas.fill_rect(Rect::from_center(foot_point, rect.x as u32, rect.y as u32))?;
+
+    let camera_point = Point::from(camera.to_pixels(camera.center));
+    canvas.set_draw_color(Color::RED);
+    canvas.fill_rect(Rect::from_center(camera_point, 16, 16))?;
 
     canvas.present();
 
@@ -240,8 +262,8 @@ fn main() -> Result<(), String> {
 
     let mut timer = Instant::now();
 
-    let mut level = Level::from_file("level.txt", (WORLD_WIDTH, WORLD_HEIGTH))
-    .expect("Error loading level from file");
+    let mut level = Level::from_file("level.txt") //
+        .expect("Error loading level from file");
 
     let mut player = Player {
         position: level.spawn,
@@ -250,9 +272,16 @@ fn main() -> Result<(), String> {
         grounded: false,
     };
 
+    let mut camera = Camera {
+        center: player.position,
+        bounds: Vec2::new(CAMERA_WIDTH, CAMERA_HEIGTH),
+        screen_size: canvas.output_size()?,
+    };
+
+    println!("Player {:?}, Camera {:?}", player, camera);
+
     let mut event_pump = sdl_context.event_pump()?;
     'running: loop {
-        let bench = Instant::now();
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit { .. } | Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
@@ -276,22 +305,9 @@ fn main() -> Result<(), String> {
 
         level.update(elapsed);
 
-        let mut camera = player.position.clone();
-        if camera.x < 0.0 {
-            camera.x = 0.0;
-        }
-        if camera.x > level.width as f32 - WORLD_WIDTH {
-            camera.x = level.width as f32 - WORLD_WIDTH;
-        }
-        if camera.y < 0.0 {
-            camera.y = 0.0;
-        }
-        if camera.y > level.height as f32 - WORLD_HEIGTH {
-            camera.y = level.height as f32 - WORLD_HEIGTH;
-        }
+        camera.recenter(player.position, (level.width as f32, level.height as f32));
 
-        println!("Bench: {:?}", bench.elapsed());
-        render(&mut canvas, camera, &player, &level)?;
+        render(&mut canvas, &camera, &player, &level)?;
     }
 
     Ok(())

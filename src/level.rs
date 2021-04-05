@@ -67,45 +67,50 @@ impl Level {
         Level { width: 0, height: 0, tiles: Vec::new(), enemies: Vec::new(), spawn: Vec2::ZERO }
     }
 
-    pub fn from_file(filename: &str, world_size: (f32, f32)) -> io::Result<Level> {
-        let tile_offset = TILE_SIDE / 2.0;
-        let (x_offset, y_offset) = (world_size.0 / 2.0, world_size.1 / 2.0);
-
+    pub fn from_file(filename: &str) -> io::Result<Level> {
         let level_str = fs::read_to_string(filename)?;
 
         let mut level = Level::new();
 
-        level_str
+        let level_coords: Vec<_> = level_str
             .lines()
             .enumerate()
             .flat_map(|(y, line)| line.char_indices().map(move |(x, c)| (x, y, c)))
-            .for_each(|(x, y, c)| {
-                level.width = level.width.max(x as i32 + 1);
-                level.height = level.height.max(y as i32 + 1);
-                let (tx, ty) = (x as f32 - x_offset, -(y as f32) + y_offset);
-                match c {
-                    '#' => {
-                        level.tiles.push(Tile {
-                            position: Vec2::new(tx + tile_offset, ty - tile_offset),
-                            side: TILE_SIDE,
-                        });
-                    }
-                    'E' => {
-                        let position = Vec2::new(x as f32 - x_offset + 0.5, -(y as f32) + y_offset);
-                        level.enemies.push(Enemy {
-                            position: position,
-                            start_pos: position,
-                            velocity: Vec2::new(-5.0, 0.0),
-                            side: Vec2::new(1.0, 2.0),
-                        });
-                    }
-                    'S' => {
-                        let position = Vec2::new(x as f32 - x_offset + 0.5, -(y as f32) + y_offset);
-                        level.spawn = position;
-                    }
-                    _ => {}
+            .collect();
+
+        for (x, y, _) in &level_coords {
+            level.width = level.width.max(*x as i32 + 1);
+            level.height = level.height.max(*y as i32 + 1);
+        }
+
+        let tile_offset = TILE_SIDE / 2.0;
+        let (x_offset, y_offset) = (level.width as f32 / 2.0, level.height as f32 / 2.0);
+
+        for (x, y, c) in level_coords {
+            let (world_x, world_y) = (x as f32 - x_offset, -(y as f32) + y_offset);
+            match c {
+                '#' => {
+                    level.tiles.push(Tile {
+                        position: Vec2::new(world_x + tile_offset, world_y - tile_offset),
+                        side: TILE_SIDE,
+                    });
                 }
-            });
+                'E' => {
+                    let position = Vec2::new(world_x, world_y);
+                    level.enemies.push(Enemy {
+                        position: position,
+                        start_pos: position,
+                        velocity: Vec2::new(-5.0, 0.0),
+                        side: Vec2::new(1.0, 2.0),
+                    });
+                }
+                'S' => {
+                    let position = Vec2::new(world_x, world_y);
+                    level.spawn = position;
+                }
+                _ => {}
+            }
+        }
 
         Ok(level)
     }
