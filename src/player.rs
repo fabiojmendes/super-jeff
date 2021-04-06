@@ -13,14 +13,19 @@ const MAX_VELOCITY: Vec2 = const_vec2!([10.0, 100.0]);
 #[derive(Debug)]
 pub struct Player {
     pub position: Vec2,
-    pub side: Vec2,
+    pub sides: Vec2,
     velocity: Vec2,
     grounded: bool,
 }
 
 impl Player {
     pub fn new(spawn: Vec2) -> Player {
-        Player { position: spawn, side: Vec2::new(0.9, 1.8), velocity: Vec2::ZERO, grounded: false }
+        Player {
+            position: spawn,
+            sides: Vec2::new(0.9, 1.8),
+            velocity: Vec2::ZERO,
+            grounded: false,
+        }
     }
 
     fn grounded(&self) -> bool {
@@ -54,7 +59,7 @@ impl Player {
     }
 
     pub fn foot_rect(&self) -> (Vec2, Vec2) {
-        let foot = Vec2::new(self.position.x, self.position.y - self.side.y / 2.0 - 0.08);
+        let foot = Vec2::new(self.position.x, self.position.y - self.sides.y / 2.0 - 0.08);
         (foot, Vec2::new(0.55, 0.05))
     }
 
@@ -93,11 +98,12 @@ impl Player {
         self.grounded = false;
         // Check for collisions
         for t in &level.tiles {
+            // Check X component
             let x_collision = physics::collides(
-                self.position + Vec2::new(displacement.x, 0.0),
-                self.side.into(),
+                self.position + displacement * Vec2::X,
+                self.sides,
                 t.position,
-                (t.side, t.side),
+                t.sides,
             );
 
             if x_collision {
@@ -105,11 +111,12 @@ impl Player {
                 self.velocity.x = 0.0;
             }
 
+            // Check Y component
             let y_collision = physics::collides(
-                self.position + Vec2::new(0.0, displacement.y),
-                self.side.into(),
+                self.position + displacement * Vec2::Y,
+                self.sides,
                 t.position,
-                (t.side, t.side),
+                t.sides,
             );
 
             if y_collision {
@@ -125,22 +132,15 @@ impl Player {
         self.position += displacement;
 
         let (foot_pos, foot_rect) = self.foot_rect();
-        level
-            .enemies
-            .retain(|e| !physics::collides(foot_pos, foot_rect.into(), e.position, e.side.into()));
+        level.enemies.retain(|e| !physics::collides(foot_pos, foot_rect, e.position, e.sides));
 
         for e in &level.enemies {
-            if physics::collides(self.position, self.side.into(), e.position, e.side.into()) {
+            if physics::collides(self.position, self.sides, e.position, e.sides) {
                 self.die(level.spawn);
             }
         }
 
-        if physics::collides(
-            self.position,
-            self.side.into(),
-            level.monkey.position,
-            level.monkey.sides.into(),
-        ) {
+        if physics::collides(self.position, self.sides, level.monkey.position, level.monkey.sides) {
             self.die(level.spawn);
         }
 

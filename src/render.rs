@@ -57,17 +57,14 @@ pub fn render(
     for t in &level.tiles {
         canvas.set_draw_color(Color::RGB(127, 0, 0));
         let pos = Point::from(camera.to_pixels(t.position));
-        canvas.fill_rect(Rect::from_center(
-            pos,
-            (t.side * camera.scale()) as u32,
-            (t.side * camera.scale()) as u32,
-        ))?;
+        let rect = t.sides * camera.scale();
+        canvas.fill_rect(Rect::from_center(pos, rect.x as u32, rect.y as u32))?;
     }
 
     for e in &level.enemies {
         let p = Point::from(camera.to_pixels(e.position));
         canvas.set_draw_color(Color::BLACK);
-        let rect = e.side * camera.scale();
+        let rect = e.sides * camera.scale();
         canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
     }
 
@@ -78,7 +75,7 @@ pub fn render(
 
     let p = Point::from(camera.to_pixels(player.position));
     canvas.set_draw_color(Color::BLUE);
-    let rect = player.side * camera.scale();
+    let rect = player.sides * camera.scale();
     canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
 
     let (foot_pos, foot_rect) = player.foot_rect();

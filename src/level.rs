@@ -23,7 +23,7 @@ impl Monkey {
 pub struct Enemy {
     pub position: Vec2,
     pub start_pos: Vec2,
-    pub side: Vec2,
+    pub sides: Vec2,
     pub velocity: Vec2,
 }
 
@@ -32,7 +32,7 @@ const TILE_SIDE: f32 = 1.0;
 #[derive(Debug)]
 pub struct Tile {
     pub position: Vec2,
-    pub side: f32,
+    pub sides: Vec2,
 }
 
 #[derive(Debug)]
@@ -52,20 +52,14 @@ impl Level {
             let mut x_collision = false;
             let mut y_collision = false;
             for t in &self.tiles {
-                if physics::collides(
-                    e.position + displacement,
-                    e.side.into(),
-                    t.position,
-                    (t.side, t.side),
-                ) {
+                if physics::collides(e.position + displacement, e.sides, t.position, t.sides) {
                     x_collision = true;
                     break;
                 }
 
                 let future_y_pos =
                     e.position + (Vec2::X * displacement.signum()) + Vec2::new(0.0, -0.2);
-                y_collision |=
-                    physics::collides(future_y_pos, e.side.into(), t.position, (t.side, t.side));
+                y_collision |= physics::collides(future_y_pos, e.sides, t.position, t.sides);
             }
             if x_collision || !y_collision {
                 e.velocity = -e.velocity
@@ -110,14 +104,17 @@ impl Level {
             let world_pos = Vec2::new(x as f32 - offset.x, -(y as f32) + offset.y);
             match c {
                 '#' => {
-                    level.tiles.push(Tile { position: world_pos + tile_offset, side: TILE_SIDE });
+                    level.tiles.push(Tile {
+                        position: world_pos + tile_offset,
+                        sides: Vec2::new(TILE_SIDE, TILE_SIDE),
+                    });
                 }
                 'E' => {
                     level.enemies.push(Enemy {
                         position: world_pos,
                         start_pos: world_pos,
                         velocity: Vec2::new(-5.0, 0.0),
-                        side: Vec2::new(1.0, 2.0),
+                        sides: Vec2::new(1.0, 2.0),
                     });
                 }
                 'M' => {
