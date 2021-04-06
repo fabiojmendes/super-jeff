@@ -7,7 +7,6 @@ mod player;
 mod render;
 
 use level::Level;
-use player::Player;
 use render::Camera;
 
 use sdl2::event::Event;
@@ -35,8 +34,6 @@ fn main() -> Result<(), String> {
     let mut level = Level::from_file("level.txt") //
         .expect("Error loading level from file");
 
-    let mut player = Player::new(level.spawn);
-
     let mut camera = Camera::new(canvas.output_size()?);
 
     let mut event_pump = sdl_context.event_pump()?;
@@ -60,13 +57,11 @@ fn main() -> Result<(), String> {
             .filter_map(Keycode::from_scancode)
             .collect();
 
-        player.update(&keys, elapsed, &mut level);
+        level.update(elapsed, &keys);
 
-        level.update(elapsed, player.position);
+        camera.recenter(level.player.position, level.max_bounds());
 
-        camera.recenter(player.position, level.max_bounds());
-
-        render::render(&mut canvas, &camera, &player, &level)?;
+        render::render(&mut canvas, &camera, &level)?;
     }
 
     Ok(())

@@ -1,17 +1,44 @@
+use std::collections::HashSet;
 use std::fs;
 use std::io;
 use std::vec::Vec;
 
 use glam::Vec2;
+use sdl2::keyboard::Keycode;
 
 use crate::monkey::Monkey;
 use crate::physics;
+use crate::player::Player;
 
 #[derive(Debug)]
 pub struct Enemy {
     pub position: Vec2,
     pub sides: Vec2,
     velocity: Vec2,
+}
+
+impl Enemy {
+    pub fn update(&mut self, elapsed: f32, tiles: &Vec<Tile>) {
+        let displacement = self.velocity * elapsed;
+
+        let mut x_collision = false;
+        let mut y_collision = false;
+        for t in tiles {
+            if physics::collides(self.position + displacement, self.sides, t.position, t.sides) {
+                x_collision = true;
+                break;
+            }
+
+            let future_y_pos =
+                self.position + (Vec2::X * displacement.signum()) + Vec2::new(0.0, -0.2);
+            y_collision |= physics::collides(future_y_pos, self.sides, t.position, t.sides);
+        }
+        if x_collision || !y_collision {
+            self.velocity = -self.velocity
+        }
+        let displacement = self.velocity * elapsed;
+        self.position += displacement;
+    }
 }
 
 const TILE_SIDE: f32 = 1.0;
@@ -24,47 +51,12 @@ pub struct Tile {
 
 #[derive(Debug)]
 pub struct Level {
-    pub bounds: Vec2,
+    bounds: Vec2,
     pub tiles: Vec<Tile>,
     pub enemies: Vec<Enemy>,
-    pub spawn: Vec2,
+    pub player: Player,
+    spawn: Vec2,
     pub monkey: Monkey,
-}
-
-impl Level {
-    pub fn min_bounds(&self) -> Vec2 {
-        -self.max_bounds()
-    }
-
-    pub fn max_bounds(&self) -> Vec2 {
-        Vec2::new(self.bounds.x / 2.0, self.bounds.y / 2.0)
-    }
-
-    pub fn update(&mut self, elapsed: f32, player_pos: Vec2) {
-        for e in &mut self.enemies {
-            let displacement = e.velocity * elapsed;
-
-            let mut x_collision = false;
-            let mut y_collision = false;
-            for t in &self.tiles {
-                if physics::collides(e.position + displacement, e.sides, t.position, t.sides) {
-                    x_collision = true;
-                    break;
-                }
-
-                let future_y_pos =
-                    e.position + (Vec2::X * displacement.signum()) + Vec2::new(0.0, -0.2);
-                y_collision |= physics::collides(future_y_pos, e.sides, t.position, t.sides);
-            }
-            if x_collision || !y_collision {
-                e.velocity = -e.velocity
-            }
-            let displacement = e.velocity * elapsed;
-            e.position += displacement;
-        }
-
-        self.monkey.udpate(elapsed, player_pos, self.min_bounds());
-    }
 }
 
 impl Level {
@@ -74,8 +66,60 @@ impl Level {
             tiles: Vec::new(),
             enemies: Vec::new(),
             monkey: Monkey::new(),
+            player: Player::new(),
             spawn: Vec2::ZERO,
         }
+    }
+
+    pub fn min_bounds(&self) -> Vec2 {
+        -self.max_bounds()
+    }
+
+    pub fn max_bounds(&self) -> Vec2 {
+        Vec2::new(self.bounds.x / 2.0, self.bounds.y / 2.0)
+    }
+
+    pub fn update(&mut self, elapsed: f32, keys: &HashSet<Keycode>) {
+        self.player.update(keys, elapsed, &self.tiles);
+
+        self.monkey.udpate(elapsed, self.player.position, &self.tiles);
+
+        for e in &mut self.enemies {
+            e.update(elapsed, &self.tiles);
+        }
+
+        // Player dies by falling out of level bounds
+        if self.player.position.y < self.min_bounds().y - self.player.sides.y * 2.0 {
+            self.player.die(self.spawn);
+        }
+
+        // Resolve Collisions
+
+        if physics::collides(
+            self.player.position,
+            self.player.sides,
+            self.monkey.position,
+            self.monkey.sides,
+        ) {
+            self.player.die(self.spawn);
+        }
+
+        for b in &self.monkey.bananas {
+            if physics::collides(self.player.position, self.player.sides, b.position, b.sides) {
+                self.player.die(self.spawn);
+            }
+        }
+
+        let (foot_pos, foot_rect) = self.player.foot_rect();
+        self.enemies.retain(|e| !physics::collides(foot_pos, foot_rect, e.position, e.sides));
+        for e in &self.enemies {
+            if physics::collides(self.player.position, self.player.sides, e.position, e.sides) {
+                self.player.die(self.spawn);
+            }
+        }
+
+        let min_bounds = self.min_bounds();
+        self.monkey.bananas.retain(|b| b.position.y > min_bounds.y);
     }
 
     fn offset(position: Vec2, y_side: f32) -> Vec2 {
@@ -121,8 +165,8 @@ impl Level {
                     level.monkey.position = Level::offset(world_pos, level.monkey.sides.y);
                 }
                 'S' => {
-                    // TODO: Get the sides value from player
-                    level.spawn = Level::offset(world_pos, 1.8);
+                    level.spawn = Level::offset(world_pos, level.player.sides.y);
+                    level.player.position = level.spawn;
                 }
                 _ => {}
             }

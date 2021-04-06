@@ -2,7 +2,7 @@ use glam::{const_vec2, Vec2};
 use sdl2::keyboard::Keycode;
 use std::collections::HashSet;
 
-use crate::level::Level;
+use crate::level::Tile;
 use crate::physics;
 
 const PLAYER_SPEED: f32 = 30.0;
@@ -13,18 +13,20 @@ const MAX_VELOCITY: Vec2 = const_vec2!([10.0, 100.0]);
 #[derive(Debug)]
 pub struct Player {
     pub position: Vec2,
-    sides: Vec2,
+    pub sides: Vec2,
     velocity: Vec2,
+    dead: bool,
     grounded: bool,
     crouched: bool,
 }
 
 impl Player {
-    pub fn new(spawn: Vec2) -> Player {
+    pub fn new() -> Player {
         Player {
-            position: spawn,
+            position: Vec2::ZERO,
             sides: Vec2::new(0.9, 1.8),
             velocity: Vec2::ZERO,
+            dead: false,
             grounded: false,
             crouched: false,
         }
@@ -63,7 +65,8 @@ impl Player {
         }
     }
 
-    fn die(&mut self, spawn: Vec2) {
+    pub fn die(&mut self, spawn: Vec2) {
+        self.dead = true;
         self.velocity = Vec2::ZERO;
         self.position = spawn;
     }
@@ -73,7 +76,7 @@ impl Player {
         (foot, Vec2::new(0.55, 0.05))
     }
 
-    pub fn update(&mut self, keys: &HashSet<Keycode>, elapsed: f32, level: &mut Level) {
+    pub fn update(&mut self, keys: &HashSet<Keycode>, elapsed: f32, tiles: &Vec<Tile>) {
         // Drag
         self.apply_drag(elapsed);
 
@@ -111,7 +114,7 @@ impl Player {
 
         self.grounded = false;
         // Check for collisions
-        for t in &level.tiles {
+        for t in tiles {
             // Check X component
             let x_collision = physics::collides(
                 self.position + displacement * Vec2::X,
@@ -144,30 +147,6 @@ impl Player {
         }
         // Apply new Position
         self.position += displacement;
-
-        let (foot_pos, foot_rect) = self.foot_rect();
-        level.enemies.retain(|e| !physics::collides(foot_pos, foot_rect, e.position, e.sides));
-
-        for e in &level.enemies {
-            if physics::collides(self.position, self.sides, e.position, e.sides) {
-                self.die(level.spawn);
-            }
-        }
-
-        if physics::collides(self.position, self.sides, level.monkey.position, level.monkey.sides) {
-            self.die(level.spawn);
-        }
-
-        for b in &level.monkey.bananas {
-            if physics::collides(self.position, self.sides, b.position, b.sides) {
-                self.die(level.spawn);
-            }
-        }
-
-        // Reset if it falls
-        if self.position.y < level.min_bounds().y - self.sides.y * 2.0 {
-            self.die(level.spawn);
-        }
     }
 
     // fn state(&self) -> PlayerState {

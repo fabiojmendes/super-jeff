@@ -4,7 +4,6 @@ use sdl2::rect::{Point, Rect};
 use sdl2::render::WindowCanvas;
 
 use crate::level::Level;
-use crate::player::Player;
 
 #[derive(Debug)]
 pub struct Camera {
@@ -45,12 +44,7 @@ impl Camera {
     }
 }
 
-pub fn render(
-    canvas: &mut WindowCanvas,
-    camera: &Camera,
-    player: &Player,
-    level: &Level,
-) -> Result<(), String> {
+pub fn render(canvas: &mut WindowCanvas, camera: &Camera, level: &Level) -> Result<(), String> {
     canvas.set_draw_color(Color::GRAY);
     canvas.clear();
 
@@ -82,12 +76,12 @@ pub fn render(
         canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
     }
 
-    let p = Point::from(camera.to_pixels(player.position));
+    let p = Point::from(camera.to_pixels(level.player.position));
     canvas.set_draw_color(Color::BLUE);
-    let rect = player.sides() * camera.scale();
+    let rect = level.player.sides() * camera.scale();
     canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
 
-    let (foot_pos, foot_rect) = player.foot_rect();
+    let (foot_pos, foot_rect) = level.player.foot_rect();
     let foot_point = Point::from(camera.to_pixels(foot_pos));
     canvas.set_draw_color(Color::GREEN);
     let rect = foot_rect * camera.scale();
