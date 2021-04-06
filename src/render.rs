@@ -36,7 +36,7 @@ impl Camera {
     pub fn recenter(&mut self, position: Vec2, level_bounds: Vec2) {
         self.center = position;
         // Clamp camera position
-        let max = level_bounds / 2.0 - self.bounds / 2.0;
+        let max = level_bounds - self.bounds / 2.0;
         self.center = self.center.clamp(-max, max);
     }
 

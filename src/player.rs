@@ -165,7 +165,7 @@ impl Player {
         }
 
         // Reset if it falls
-        if self.position.y < -(level.bounds.y) {
+        if self.position.y < level.min_bounds().y - self.sides.y * 2.0 {
             self.die(level.spawn);
         }
     }

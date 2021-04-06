@@ -28,12 +28,12 @@ impl Monkey {
         }
     }
 
-    fn udpate(&mut self, elapsed: f32, target: Vec2) {
+    fn udpate(&mut self, elapsed: f32, target: Vec2, level_bounds: Vec2) {
         if self.timer.elapsed() > Duration::from_secs(1) {
             self.timer += self.timer.elapsed();
-            let yvel = rand::random::<f32>() * 15.0 + 5.0;
 
             let distance = target - self.position;
+            let yvel = (rand::random::<f32>() * 7.5) + (distance.x.abs() / 2.0);
             let velocity = Vec2::new((distance.x * -physics::GRAVITY.y / yvel) / 2.0, yvel);
 
             self.bananas.push(Banana {
@@ -46,7 +46,7 @@ impl Monkey {
             b.velocity += physics::GRAVITY * elapsed;
             b.position += b.velocity * elapsed;
         }
-        self.bananas.retain(|b| b.position.y > -20.0);
+        self.bananas.retain(|b| b.position.y > level_bounds.y);
     }
 }
 
@@ -83,6 +83,14 @@ pub struct Level {
 }
 
 impl Level {
+    pub fn min_bounds(&self) -> Vec2 {
+        -self.max_bounds()
+    }
+
+    pub fn max_bounds(&self) -> Vec2 {
+        Vec2::new(self.bounds.x / 2.0, self.bounds.y / 2.0)
+    }
+
     pub fn update(&mut self, elapsed: f32, player_pos: Vec2) {
         for e in &mut self.enemies {
             let displacement = e.velocity * elapsed;
@@ -106,7 +114,7 @@ impl Level {
             e.position += displacement;
         }
 
-        self.monkey.udpate(elapsed, player_pos);
+        self.monkey.udpate(elapsed, player_pos, self.min_bounds());
     }
 }
 

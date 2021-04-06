@@ -63,7 +63,7 @@ fn main() -> Result<(), String> {
 
         level.update(elapsed, player.position);
 
-        camera.recenter(player.position, level.bounds);
+        camera.recenter(player.position, level.max_bounds());
 
         render::render(&mut canvas, &camera, &player, &level)?;
     }
