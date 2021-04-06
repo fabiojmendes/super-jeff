@@ -1,4 +1,4 @@
-use rand;
+use rand::{self, Rng};
 use std::fs;
 use std::io;
 use std::time::{Duration, Instant};
@@ -21,26 +21,32 @@ impl Monkey {
     fn new() -> Monkey {
         Monkey {
             position: Vec2::ZERO,
-            sides: Vec2::new(2.0, 4.0),
+            sides: Vec2::new(2.0, 3.5),
             velocity: Vec2::ZERO,
             bananas: Vec::new(),
             timer: Instant::now(),
         }
     }
 
+    fn throw_banana(&mut self, target: Vec2) {
+        let distance = target - self.position;
+        if distance.x.abs() > 30.0 {
+            return;
+        }
+        // Random y velocity based on the distance from the target
+        let yvel = (rand::random::<f32>() * 7.5) + (distance.x.abs() / 2.0);
+        // Calculate the trajectory based on the random y velocity and distance from target
+        // https://www.dummies.com/education/science/physics/calculate-the-range-of-a-projectile-fired-at-an-angle/
+        let velocity = Vec2::new((distance.x * -physics::GRAVITY.y / yvel) / 2.0, yvel);
+        self.bananas.push(Banana { position: self.position, sides: Vec2::new(0.5, 0.3), velocity })
+    }
+
     fn udpate(&mut self, elapsed: f32, target: Vec2, level_bounds: Vec2) {
-        if self.timer.elapsed() > Duration::from_secs(1) {
+        let mut rng = rand::thread_rng();
+        if self.timer.elapsed() > Duration::from_millis(rng.gen_range(750..1250)) {
             self.timer += self.timer.elapsed();
 
-            let distance = target - self.position;
-            let yvel = (rand::random::<f32>() * 7.5) + (distance.x.abs() / 2.0);
-            let velocity = Vec2::new((distance.x * -physics::GRAVITY.y / yvel) / 2.0, yvel);
-
-            self.bananas.push(Banana {
-                position: self.position,
-                sides: Vec2::new(0.5, 0.2),
-                velocity,
-            })
+            self.throw_banana(target);
         }
         for b in &mut self.bananas {
             b.velocity += physics::GRAVITY * elapsed;
@@ -60,9 +66,8 @@ pub struct Banana {
 #[derive(Debug)]
 pub struct Enemy {
     pub position: Vec2,
-    pub start_pos: Vec2,
     pub sides: Vec2,
-    pub velocity: Vec2,
+    velocity: Vec2,
 }
 
 const TILE_SIDE: f32 = 1.0;
@@ -129,6 +134,10 @@ impl Level {
         }
     }
 
+    fn offset(position: Vec2, y_side: f32) -> Vec2 {
+        position + (Vec2::Y * (y_side - TILE_SIDE) / 2.0)
+    }
+
     pub fn from_file(filename: &str) -> io::Result<Level> {
         let level_str = fs::read_to_string(filename)?;
 
@@ -149,27 +158,27 @@ impl Level {
         let offset = level.bounds / 2.0;
 
         for (x, y, c) in level_coords {
-            let world_pos = Vec2::new(x as f32 - offset.x, -(y as f32) + offset.y);
+            let world_pos = Vec2::new(x as f32 - offset.x, -(y as f32) + offset.y) + tile_offset;
             match c {
                 '#' => {
-                    level.tiles.push(Tile {
-                        position: world_pos + tile_offset,
-                        sides: Vec2::new(TILE_SIDE, TILE_SIDE),
-                    });
+                    level
+                        .tiles
+                        .push(Tile { position: world_pos, sides: Vec2::new(TILE_SIDE, TILE_SIDE) });
                 }
                 'E' => {
+                    let sides = Vec2::new(1.0, 2.0);
                     level.enemies.push(Enemy {
-                        position: world_pos,
-                        start_pos: world_pos,
+                        position: Level::offset(world_pos, sides.y),
                         velocity: Vec2::new(-5.0, 0.0),
-                        sides: Vec2::new(1.0, 2.0),
+                        sides,
                     });
                 }
                 'M' => {
-                    level.monkey.position = world_pos + Vec2::Y;
+                    level.monkey.position = Level::offset(world_pos, level.monkey.sides.y);
                 }
                 'S' => {
-                    level.spawn = world_pos;
+                    // TODO: Get the sides value from player
+                    level.spawn = Level::offset(world_pos, 1.8);
                 }
                 _ => {}
             }

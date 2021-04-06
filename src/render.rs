@@ -72,6 +72,10 @@ pub fn render(
     canvas.set_draw_color(Color::YELLOW);
     let rect = level.monkey.sides * camera.scale();
     canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
+    canvas.set_draw_color(Color::BLACK);
+    canvas.draw_point(p)?;
+    // let rect = Vec2::new(6.0, 6.0);
+    // canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
 
     for b in &level.monkey.bananas {
         let p = Point::from(camera.to_pixels(b.position));
