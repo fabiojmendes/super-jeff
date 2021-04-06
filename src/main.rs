@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod level;
+mod monkey;
 mod physics;
 mod player;
 mod render;
