@@ -1,5 +1,7 @@
+use rand;
 use std::fs;
 use std::io;
+use std::time::{Duration, Instant};
 use std::vec::Vec;
 
 use glam::Vec2;
@@ -11,12 +13,48 @@ pub struct Monkey {
     pub position: Vec2,
     pub sides: Vec2,
     pub velocity: Vec2,
+    pub bananas: Vec<Banana>,
+    timer: Instant,
 }
 
 impl Monkey {
     fn new() -> Monkey {
-        Monkey { position: Vec2::ZERO, sides: Vec2::new(2.0, 4.0), velocity: Vec2::ZERO }
+        Monkey {
+            position: Vec2::ZERO,
+            sides: Vec2::new(2.0, 4.0),
+            velocity: Vec2::ZERO,
+            bananas: Vec::new(),
+            timer: Instant::now(),
+        }
     }
+
+    fn udpate(&mut self, elapsed: f32, target: Vec2) {
+        if self.timer.elapsed() > Duration::from_secs(1) {
+            self.timer += self.timer.elapsed();
+            let yvel = rand::random::<f32>() * 15.0 + 5.0;
+
+            let distance = target - self.position;
+            let velocity = Vec2::new((distance.x * -physics::GRAVITY.y / yvel) / 2.0, yvel);
+
+            self.bananas.push(Banana {
+                position: self.position,
+                sides: Vec2::new(0.5, 0.2),
+                velocity,
+            })
+        }
+        for b in &mut self.bananas {
+            b.velocity += physics::GRAVITY * elapsed;
+            b.position += b.velocity * elapsed;
+        }
+        self.bananas.retain(|b| b.position.y > -20.0);
+    }
+}
+
+#[derive(Debug)]
+pub struct Banana {
+    pub position: Vec2,
+    pub sides: Vec2,
+    velocity: Vec2,
 }
 
 #[derive(Debug)]
@@ -45,7 +83,7 @@ pub struct Level {
 }
 
 impl Level {
-    pub fn update(&mut self, elapsed: f32) {
+    pub fn update(&mut self, elapsed: f32, player_pos: Vec2) {
         for e in &mut self.enemies {
             let displacement = e.velocity * elapsed;
 
@@ -67,6 +105,8 @@ impl Level {
             let displacement = e.velocity * elapsed;
             e.position += displacement;
         }
+
+        self.monkey.udpate(elapsed, player_pos);
     }
 }
 

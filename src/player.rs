@@ -13,9 +13,10 @@ const MAX_VELOCITY: Vec2 = const_vec2!([10.0, 100.0]);
 #[derive(Debug)]
 pub struct Player {
     pub position: Vec2,
-    pub sides: Vec2,
+    sides: Vec2,
     velocity: Vec2,
     grounded: bool,
+    crouched: bool,
 }
 
 impl Player {
@@ -25,11 +26,20 @@ impl Player {
             sides: Vec2::new(0.9, 1.8),
             velocity: Vec2::ZERO,
             grounded: false,
+            crouched: false,
         }
     }
 
     fn grounded(&self) -> bool {
         self.grounded
+    }
+
+    pub fn sides(&self) -> Vec2 {
+        if self.crouched {
+            self.sides * Vec2::new(1.0, 0.5)
+        } else {
+            self.sides
+        }
     }
 
     fn speed(&self) -> f32 {
@@ -67,6 +77,7 @@ impl Player {
         // Drag
         self.apply_drag(elapsed);
 
+        self.crouched = false;
         // Input
         for key in keys {
             match key {
@@ -75,6 +86,9 @@ impl Player {
                 }
                 Keycode::Right => {
                     self.accelerate(Vec2::new(self.speed(), 0.0), elapsed);
+                }
+                Keycode::Down => {
+                    self.crouched = true;
                 }
                 Keycode::Space => {
                     if self.grounded() {
@@ -142,6 +156,12 @@ impl Player {
 
         if physics::collides(self.position, self.sides, level.monkey.position, level.monkey.sides) {
             self.die(level.spawn);
+        }
+
+        for b in &level.monkey.bananas {
+            if physics::collides(self.position, self.sides, b.position, b.sides) {
+                self.die(level.spawn);
+            }
         }
 
         // Reset if it falls

@@ -61,7 +61,7 @@ fn main() -> Result<(), String> {
 
         player.update(&keys, elapsed, &mut level);
 
-        level.update(elapsed);
+        level.update(elapsed, player.position);
 
         camera.recenter(player.position, level.bounds);
 

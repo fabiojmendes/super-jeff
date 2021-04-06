@@ -73,9 +73,16 @@ pub fn render(
     let rect = level.monkey.sides * camera.scale();
     canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
 
+    for b in &level.monkey.bananas {
+        let p = Point::from(camera.to_pixels(b.position));
+        canvas.set_draw_color(Color::YELLOW);
+        let rect = b.sides * camera.scale();
+        canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
+    }
+
     let p = Point::from(camera.to_pixels(player.position));
     canvas.set_draw_color(Color::BLUE);
-    let rect = player.sides * camera.scale();
+    let rect = player.sides() * camera.scale();
     canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
 
     let (foot_pos, foot_rect) = player.foot_rect();
