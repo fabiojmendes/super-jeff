@@ -14,18 +14,33 @@ pub struct Monkey {
     pub sides: Vec2,
     pub velocity: Vec2,
     pub bananas: Vec<Banana>,
+    bananas_thrown: i32,
     timer: Instant,
+    pub enranged: bool,
+    rage_velocity: Vec2,
 }
 
 impl Monkey {
+    const RAGE_START: Duration = Duration::from_millis(500);
+    const RAGE_DURATION: Duration = Duration::from_millis(2300);
+
     fn new() -> Monkey {
         Monkey {
             position: Vec2::ZERO,
             sides: Vec2::new(2.0, 3.5),
             velocity: Vec2::ZERO,
             bananas: Vec::new(),
+            bananas_thrown: 0,
             timer: Instant::now(),
+            enranged: false,
+            rage_velocity: Vec2::new(-15.0, 0.0),
         }
+    }
+
+    fn rage(&mut self) {
+        self.bananas_thrown = 0;
+        self.enranged = true;
+        println!("RAGE!");
     }
 
     fn throw_banana(&mut self, target: Vec2) {
@@ -38,16 +53,32 @@ impl Monkey {
         // Calculate the trajectory based on the random y velocity and distance from target
         // https://www.dummies.com/education/science/physics/calculate-the-range-of-a-projectile-fired-at-an-angle/
         let velocity = Vec2::new((distance.x * -physics::GRAVITY.y / yvel) / 2.0, yvel);
-        self.bananas.push(Banana { position: self.position, sides: Vec2::new(0.5, 0.3), velocity })
+        self.bananas.push(Banana { position: self.position, sides: Vec2::new(0.5, 0.3), velocity });
+        self.bananas_thrown += 1;
     }
 
     fn udpate(&mut self, elapsed: f32, target: Vec2, level_bounds: Vec2) {
         let mut rng = rand::thread_rng();
-        if self.timer.elapsed() > Duration::from_millis(rng.gen_range(750..1250)) {
+        if self.enranged {
+            if self.timer.elapsed() >= Monkey::RAGE_START {
+                self.velocity = self.rage_velocity;
+            }
+            if self.timer.elapsed() >= Monkey::RAGE_DURATION {
+                self.timer += self.timer.elapsed();
+                self.enranged = false;
+                self.velocity = Vec2::ZERO;
+                self.rage_velocity = -self.rage_velocity;
+                println!("End Rage");
+            }
+        } else if self.bananas_thrown >= rng.gen_range(5..10) {
+            self.rage();
+        } else if self.timer.elapsed() > Duration::from_millis(rng.gen_range(500..1500)) {
             self.timer += self.timer.elapsed();
-
             self.throw_banana(target);
         }
+
+        self.position += self.velocity * elapsed;
+
         for b in &mut self.bananas {
             b.velocity += physics::GRAVITY * elapsed;
             b.position += b.velocity * elapsed;

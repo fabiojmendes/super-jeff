@@ -56,9 +56,10 @@ pub fn render(
 
     for t in &level.tiles {
         canvas.set_draw_color(Color::RGB(127, 0, 0));
-        let pos = Point::from(camera.to_pixels(t.position));
+        let p = Point::from(camera.to_pixels(t.position));
         let rect = t.sides * camera.scale();
-        canvas.fill_rect(Rect::from_center(pos, rect.x as u32, rect.y as u32))?;
+        canvas.draw_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
+        canvas.draw_point(p)?;
     }
 
     for e in &level.enemies {
@@ -69,13 +70,10 @@ pub fn render(
     }
 
     let p = Point::from(camera.to_pixels(level.monkey.position));
-    canvas.set_draw_color(Color::YELLOW);
+    let color = if level.monkey.enranged { Color::RED } else { Color::YELLOW };
+    canvas.set_draw_color(color);
     let rect = level.monkey.sides * camera.scale();
     canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
-    canvas.set_draw_color(Color::BLACK);
-    canvas.draw_point(p)?;
-    // let rect = Vec2::new(6.0, 6.0);
-    // canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
 
     for b in &level.monkey.bananas {
         let p = Point::from(camera.to_pixels(b.position));
@@ -97,7 +95,7 @@ pub fn render(
 
     // let camera_point = Point::from(camera.to_pixels(camera.center));
     // canvas.set_draw_color(Color::RED);
-    // canvas.fill_rect(Rect::from_center(camera_point, 16, 16))?;
+    // canvas.fill_rect(Rect::from_center(camera_point, 4, 4))?;
 
     canvas.present();
 
