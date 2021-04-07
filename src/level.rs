@@ -15,9 +15,21 @@ pub struct Enemy {
     pub position: Vec2,
     pub sides: Vec2,
     velocity: Vec2,
+    health: i32,
 }
 
 impl Enemy {
+    pub fn dead(&self) -> bool {
+        self.health <= 0
+    }
+
+    pub fn damage(&mut self, damage: i32) {
+        self.health -= damage;
+        if self.dead() {
+            self.velocity = Vec2::ZERO;
+        }
+    }
+
     pub fn update(&mut self, elapsed: f32, tiles: &Vec<Tile>) {
         let displacement = self.velocity * elapsed;
 
@@ -94,14 +106,21 @@ impl Level {
         }
 
         // Resolve Collisions
+        let (foot_pos, foot_rect) = self.player.foot_rect();
 
-        if physics::collides(
-            self.player.position,
-            self.player.sides,
-            self.monkey.position,
-            self.monkey.sides,
-        ) {
-            self.player.die(self.spawn);
+        if !self.monkey.dead() {
+            if physics::collides(foot_pos, foot_rect, self.monkey.position, self.monkey.sides) {
+                self.player.velocity.y = 15.0;
+                self.player.position.y += 0.5;
+                self.monkey.damage(1);
+            } else if physics::collides(
+                self.player.position,
+                self.player.sides,
+                self.monkey.position,
+                self.monkey.sides,
+            ) {
+                self.player.die(self.spawn);
+            }
         }
 
         for b in &self.monkey.bananas {
@@ -110,10 +129,15 @@ impl Level {
             }
         }
 
-        let (foot_pos, foot_rect) = self.player.foot_rect();
-        self.enemies.retain(|e| !physics::collides(foot_pos, foot_rect, e.position, e.sides));
-        for e in &self.enemies {
-            if physics::collides(self.player.position, self.player.sides, e.position, e.sides) {
+        for e in self.enemies.iter_mut().filter(|e| !e.dead()) {
+            if physics::collides(foot_pos, foot_rect, e.position, e.sides) {
+                e.damage(1);
+            } else if physics::collides(
+                self.player.position,
+                self.player.sides,
+                e.position,
+                e.sides,
+            ) {
                 self.player.die(self.spawn);
             }
         }
@@ -159,6 +183,7 @@ impl Level {
                         position: Level::offset(world_pos, sides.y),
                         velocity: Vec2::new(-5.0, 0.0),
                         sides,
+                        health: 1,
                     });
                 }
                 'M' => {

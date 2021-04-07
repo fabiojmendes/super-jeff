@@ -14,7 +14,7 @@ const MAX_VELOCITY: Vec2 = const_vec2!([10.0, 100.0]);
 pub struct Player {
     pub position: Vec2,
     pub sides: Vec2,
-    velocity: Vec2,
+    pub velocity: Vec2,
     dead: bool,
     grounded: bool,
     crouched: bool,

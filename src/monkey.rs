@@ -17,6 +17,7 @@ pub struct Monkey {
     timer: Instant,
     bananas_thrown: i32,
     rage_velocity: Vec2,
+    health: i32,
 }
 
 impl Monkey {
@@ -33,6 +34,7 @@ impl Monkey {
             timer: Instant::now(),
             enranged: false,
             rage_velocity: Vec2::new(-15.0, 0.0),
+            health: 3,
         }
     }
 
@@ -55,9 +57,22 @@ impl Monkey {
         self.bananas_thrown += 1;
     }
 
+    pub fn dead(&self) -> bool {
+        self.health <= 0
+    }
+
+    pub fn damage(&mut self, amount: i32) {
+        self.health -= amount;
+        if self.dead() {
+            self.velocity = Vec2::ZERO;
+        }
+    }
+
     pub fn udpate(&mut self, elapsed: f32, target: Vec2, tiles: &Vec<Tile>) {
         let mut rng = rand::thread_rng();
-        if self.enranged && self.timer.elapsed() >= Monkey::RAGE_DELAY {
+        if self.dead() {
+            // Skip
+        } else if self.enranged && self.timer.elapsed() >= Monkey::RAGE_DELAY {
             self.velocity = self.rage_velocity;
             for t in tiles {
                 let displacement = self.velocity.signum() * Vec2::X;

@@ -60,14 +60,22 @@ pub fn render(canvas: &mut WindowCanvas, camera: &Camera, level: &Level) -> Resu
         let p = Point::from(camera.to_pixels(e.position));
         canvas.set_draw_color(Color::BLACK);
         let rect = e.sides * camera.scale();
-        canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
+        if e.dead() {
+            canvas.draw_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
+        } else {
+            canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
+        }
     }
 
     let p = Point::from(camera.to_pixels(level.monkey.position));
     let color = if level.monkey.enranged { Color::RED } else { Color::YELLOW };
     canvas.set_draw_color(color);
     let rect = level.monkey.sides * camera.scale();
-    canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
+    if level.monkey.dead() {
+        canvas.draw_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
+    } else {
+        canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
+    }
 
     for b in &level.monkey.bananas {
         let p = Point::from(camera.to_pixels(b.position));
