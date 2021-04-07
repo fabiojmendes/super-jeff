@@ -43,7 +43,8 @@ fn main() -> Result<(), String> {
                     break 'running;
                 }
                 Event::KeyDown { keycode: Some(Keycode::R), .. } => {
-                    level.reset();
+                    level = Level::from_file("level.txt") //
+                        .expect("Error loading level from file");
                 }
                 _ => {}
             }
@@ -63,7 +64,11 @@ fn main() -> Result<(), String> {
             level.update(elapsed, &keys);
         }
 
-        camera.recenter(level.player.position, level.max_bounds());
+        if level.trapped {
+            camera.recenter(level.max_bounds(), level.max_bounds());
+        } else {
+            camera.recenter(level.player.position, level.max_bounds());
+        }
 
         render::render(&mut canvas, &camera, &level)?;
     }

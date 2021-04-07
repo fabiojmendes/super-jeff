@@ -86,12 +86,6 @@ impl Player {
         self.velocity = Vec2::ZERO;
     }
 
-    pub fn reset(&mut self) {
-        self.position = self.spawn;
-        self.velocity = Vec2::ZERO;
-        self.dead = false;
-    }
-
     pub fn foot_rect(&self) -> (Vec2, Vec2) {
         let foot = Vec2::new(self.position.x, self.position.y - self.sides.y / 2.0);
         (foot, Vec2::new(self.sides.x - 0.25, 0.15))

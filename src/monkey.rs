@@ -76,17 +76,6 @@ impl Monkey {
         }
     }
 
-    pub fn reset(&mut self) {
-        self.position = self.spawn;
-        self.velocity = Vec2::ZERO;
-        self.health = Monkey::INITIAL_HEALTH;
-        self.bananas_thrown = 0;
-        self.timer = Instant::now();
-        self.rage_velocity = Vec2::new(-15.0, 0.0);
-        self.enranged = false;
-        self.bananas.clear();
-    }
-
     pub fn udpate(&mut self, elapsed: f32, target: Vec2, tiles: &Vec<Tile>) {
         let mut rng = rand::thread_rng();
         if self.dead() {

@@ -44,12 +44,6 @@ impl Enemy {
         }
     }
 
-    pub fn reset(&mut self) {
-        self.position = self.spawn;
-        self.velocity = Enemy::INITIAL_VELOCITY;
-        self.health = Enemy::INITIAL_HEALTH;
-    }
-
     pub fn update(&mut self, elapsed: f32, tiles: &Vec<Tile>) {
         let displacement = self.velocity * elapsed;
 
@@ -88,6 +82,8 @@ pub struct Level {
     pub enemies: Vec<Enemy>,
     pub player: Player,
     pub monkey: Monkey,
+    pub trapped: bool,
+    trap_tiles: Vec<Tile>,
 }
 
 impl Level {
@@ -98,6 +94,8 @@ impl Level {
             enemies: Vec::new(),
             monkey: Monkey::new(),
             player: Player::new(),
+            trapped: false,
+            trap_tiles: Vec::new(),
         }
     }
 
@@ -113,6 +111,11 @@ impl Level {
         self.player.update(keys, elapsed, &self.tiles);
 
         self.monkey.udpate(elapsed, self.player.position, &self.tiles);
+
+        if self.trap_tiles.iter().find(|t| self.player.position.x > t.position.x + 1.0).is_some() {
+            self.tiles.append(&mut self.trap_tiles);
+            self.trapped = true;
+        }
 
         for e in &mut self.enemies {
             e.update(elapsed, &self.tiles);
@@ -160,14 +163,6 @@ impl Level {
         self.monkey.bananas.retain(|b| b.position.y > min_bounds.y);
     }
 
-    pub fn reset(&mut self) {
-        for e in &mut self.enemies {
-            e.reset();
-        }
-        self.monkey.reset();
-        self.player.reset();
-    }
-
     fn offset(position: Vec2, y_side: f32) -> Vec2 {
         position + (Vec2::Y * (y_side - TILE_SIDE) / 2.0)
     }
@@ -197,6 +192,11 @@ impl Level {
                 '#' => {
                     level
                         .tiles
+                        .push(Tile { position: world_pos, sides: Vec2::new(TILE_SIDE, TILE_SIDE) });
+                }
+                '@' => {
+                    level
+                        .trap_tiles
                         .push(Tile { position: world_pos, sides: Vec2::new(TILE_SIDE, TILE_SIDE) });
                 }
                 'E' => {
