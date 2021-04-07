@@ -42,6 +42,9 @@ fn main() -> Result<(), String> {
                 Event::Quit { .. } | Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     break 'running;
                 }
+                Event::KeyDown { keycode: Some(Keycode::R), .. } => {
+                    level.reset();
+                }
                 _ => {}
             }
         }
@@ -56,7 +59,9 @@ fn main() -> Result<(), String> {
             .filter_map(Keycode::from_scancode)
             .collect();
 
-        level.update(elapsed, &keys);
+        if !level.player.dead {
+            level.update(elapsed, &keys);
+        }
 
         camera.recenter(level.player.position, level.max_bounds());
 

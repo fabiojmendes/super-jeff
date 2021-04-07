@@ -3,7 +3,7 @@ use std::fs;
 use std::io;
 use std::vec::Vec;
 
-use glam::Vec2;
+use glam::{const_vec2, Vec2};
 use sdl2::keyboard::Keycode;
 
 use crate::monkey::Monkey;
@@ -12,6 +12,7 @@ use crate::player::Player;
 
 #[derive(Debug)]
 pub struct Enemy {
+    pub spawn: Vec2,
     pub position: Vec2,
     pub sides: Vec2,
     velocity: Vec2,
@@ -19,6 +20,19 @@ pub struct Enemy {
 }
 
 impl Enemy {
+    const INITIAL_HEALTH: i32 = 1;
+    const INITIAL_VELOCITY: Vec2 = const_vec2!([-5.0, 0.0]);
+
+    pub fn new() -> Enemy {
+        Enemy {
+            spawn: Vec2::ZERO,
+            position: Vec2::ZERO,
+            sides: Vec2::new(1.0, 2.0),
+            velocity: Enemy::INITIAL_VELOCITY,
+            health: Enemy::INITIAL_HEALTH,
+        }
+    }
+
     pub fn dead(&self) -> bool {
         self.health <= 0
     }
@@ -28,6 +42,12 @@ impl Enemy {
         if self.dead() {
             self.velocity = Vec2::ZERO;
         }
+    }
+
+    pub fn reset(&mut self) {
+        self.position = self.spawn;
+        self.velocity = Enemy::INITIAL_VELOCITY;
+        self.health = Enemy::INITIAL_HEALTH;
     }
 
     pub fn update(&mut self, elapsed: f32, tiles: &Vec<Tile>) {
@@ -67,7 +87,6 @@ pub struct Level {
     pub tiles: Vec<Tile>,
     pub enemies: Vec<Enemy>,
     pub player: Player,
-    spawn: Vec2,
     pub monkey: Monkey,
 }
 
@@ -79,7 +98,6 @@ impl Level {
             enemies: Vec::new(),
             monkey: Monkey::new(),
             player: Player::new(),
-            spawn: Vec2::ZERO,
         }
     }
 
@@ -102,7 +120,7 @@ impl Level {
 
         // Player dies by falling out of level bounds
         if self.player.position.y < self.min_bounds().y - self.player.sides.y * 2.0 {
-            self.player.die(self.spawn);
+            self.player.die();
         }
 
         // Resolve Collisions
@@ -115,13 +133,13 @@ impl Level {
                 self.monkey.position,
                 self.monkey.sides,
             ) {
-                self.player.die(self.spawn);
+                self.player.die();
             }
         }
 
         for b in &self.monkey.bananas {
             if physics::collides(self.player.position, self.player.sides, b.position, b.sides) {
-                self.player.die(self.spawn);
+                self.player.die();
             }
         }
 
@@ -134,12 +152,20 @@ impl Level {
                 e.position,
                 e.sides,
             ) {
-                self.player.die(self.spawn);
+                self.player.die();
             }
         }
 
         let min_bounds = self.min_bounds();
         self.monkey.bananas.retain(|b| b.position.y > min_bounds.y);
+    }
+
+    pub fn reset(&mut self) {
+        for e in &mut self.enemies {
+            e.reset();
+        }
+        self.monkey.reset();
+        self.player.reset();
     }
 
     fn offset(position: Vec2, y_side: f32) -> Vec2 {
@@ -174,20 +200,18 @@ impl Level {
                         .push(Tile { position: world_pos, sides: Vec2::new(TILE_SIDE, TILE_SIDE) });
                 }
                 'E' => {
-                    let sides = Vec2::new(1.0, 2.0);
-                    level.enemies.push(Enemy {
-                        position: Level::offset(world_pos, sides.y),
-                        velocity: Vec2::new(-5.0, 0.0),
-                        sides,
-                        health: 1,
-                    });
+                    let mut e = Enemy::new();
+                    e.spawn = Level::offset(world_pos, e.sides.y);
+                    e.position = e.spawn;
+                    level.enemies.push(e);
                 }
                 'M' => {
-                    level.monkey.position = Level::offset(world_pos, level.monkey.sides.y);
+                    level.monkey.spawn = Level::offset(world_pos, level.monkey.sides.y);
+                    level.monkey.position = level.monkey.spawn
                 }
                 'S' => {
-                    level.spawn = Level::offset(world_pos, level.player.sides.y);
-                    level.player.position = level.spawn;
+                    level.player.spawn = Level::offset(world_pos, level.player.sides.y);
+                    level.player.position = level.player.spawn;
                 }
                 _ => {}
             }

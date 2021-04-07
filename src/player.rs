@@ -12,10 +12,11 @@ const MAX_VELOCITY: Vec2 = const_vec2!([10.0, 100.0]);
 
 #[derive(Debug)]
 pub struct Player {
+    pub spawn: Vec2,
     pub position: Vec2,
     pub sides: Vec2,
     pub velocity: Vec2,
-    dead: bool,
+    pub dead: bool,
     grounded: bool,
     crouched: bool,
 }
@@ -23,6 +24,7 @@ pub struct Player {
 impl Player {
     pub fn new() -> Player {
         Player {
+            spawn: Vec2::ZERO,
             position: Vec2::ZERO,
             sides: Vec2::new(0.9, 1.8),
             velocity: Vec2::ZERO,
@@ -79,10 +81,15 @@ impl Player {
         }
     }
 
-    pub fn die(&mut self, spawn: Vec2) {
+    pub fn die(&mut self) {
         self.dead = true;
         self.velocity = Vec2::ZERO;
-        self.position = spawn;
+    }
+
+    pub fn reset(&mut self) {
+        self.position = self.spawn;
+        self.velocity = Vec2::ZERO;
+        self.dead = false;
     }
 
     pub fn foot_rect(&self) -> (Vec2, Vec2) {

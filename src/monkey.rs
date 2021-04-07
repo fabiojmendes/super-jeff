@@ -9,6 +9,7 @@ use crate::physics;
 
 #[derive(Debug)]
 pub struct Monkey {
+    pub spawn: Vec2,
     pub position: Vec2,
     pub sides: Vec2,
     pub velocity: Vec2,
@@ -23,9 +24,11 @@ pub struct Monkey {
 impl Monkey {
     const RAGE_DELAY: Duration = Duration::from_millis(750);
     const BANANA_MAX_DISTANCE: f32 = 30.0;
+    const INITIAL_HEALTH: i32 = 3;
 
     pub fn new() -> Monkey {
         Monkey {
+            spawn: Vec2::ZERO,
             position: Vec2::ZERO,
             sides: Vec2::new(2.0, 3.5),
             velocity: Vec2::ZERO,
@@ -34,7 +37,7 @@ impl Monkey {
             timer: Instant::now(),
             enranged: false,
             rage_velocity: Vec2::new(-15.0, 0.0),
-            health: 3,
+            health: Monkey::INITIAL_HEALTH,
         }
     }
 
@@ -71,6 +74,17 @@ impl Monkey {
         } else {
             self.rage();
         }
+    }
+
+    pub fn reset(&mut self) {
+        self.position = self.spawn;
+        self.velocity = Vec2::ZERO;
+        self.health = Monkey::INITIAL_HEALTH;
+        self.bananas_thrown = 0;
+        self.timer = Instant::now();
+        self.rage_velocity = Vec2::new(-15.0, 0.0);
+        self.enranged = false;
+        self.bananas.clear();
     }
 
     pub fn udpate(&mut self, elapsed: f32, target: Vec2, tiles: &Vec<Tile>) {
