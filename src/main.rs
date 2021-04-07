@@ -29,13 +29,12 @@ fn main() -> Result<(), String> {
         .build()
         .expect("could not build canvas from window, quiting");
 
-    let mut timer = Instant::now();
-
     let mut level = Level::from_file("level.txt") //
         .expect("Error loading level from file");
 
     let mut camera = Camera::new(canvas.output_size()?);
 
+    let mut timer = Instant::now();
     let mut event_pump = sdl_context.event_pump()?;
     'running: loop {
         for event in event_pump.poll_iter() {

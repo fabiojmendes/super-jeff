@@ -106,12 +106,8 @@ impl Level {
         }
 
         // Resolve Collisions
-        let (foot_pos, foot_rect) = self.player.foot_rect();
-
         if !self.monkey.dead() {
-            if physics::collides(foot_pos, foot_rect, self.monkey.position, self.monkey.sides) {
-                self.player.velocity.y = 15.0;
-                self.player.position.y += 0.5;
+            if self.player.attack(self.monkey.position, self.monkey.sides) {
                 self.monkey.damage(1);
             } else if physics::collides(
                 self.player.position,
@@ -130,7 +126,7 @@ impl Level {
         }
 
         for e in self.enemies.iter_mut().filter(|e| !e.dead()) {
-            if physics::collides(foot_pos, foot_rect, e.position, e.sides) {
+            if self.player.attack(e.position, e.sides) {
                 e.damage(1);
             } else if physics::collides(
                 self.player.position,

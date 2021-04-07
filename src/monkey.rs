@@ -62,9 +62,14 @@ impl Monkey {
     }
 
     pub fn damage(&mut self, amount: i32) {
+        if self.enranged {
+            return;
+        }
         self.health -= amount;
         if self.dead() {
             self.velocity = Vec2::ZERO;
+        } else {
+            self.rage();
         }
     }
 

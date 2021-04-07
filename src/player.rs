@@ -44,6 +44,20 @@ impl Player {
         }
     }
 
+    pub fn attack(&mut self, position: Vec2, sides: Vec2) -> bool {
+        let (foot_pos, foot_rect) = self.foot_rect();
+        let attacked =
+            self.velocity.y < 0.0 && physics::collides(foot_pos, foot_rect, position, sides);
+        if attacked {
+            self.jump();
+        }
+        attacked
+    }
+
+    fn jump(&mut self) {
+        self.velocity.y = JUMP_SPEED;
+    }
+
     fn speed(&self) -> f32 {
         if self.grounded() {
             PLAYER_SPEED
@@ -72,8 +86,8 @@ impl Player {
     }
 
     pub fn foot_rect(&self) -> (Vec2, Vec2) {
-        let foot = Vec2::new(self.position.x, self.position.y - self.sides.y / 2.0 - 0.08);
-        (foot, Vec2::new(0.55, 0.05))
+        let foot = Vec2::new(self.position.x, self.position.y - self.sides.y / 2.0);
+        (foot, Vec2::new(self.sides.x - 0.25, 0.15))
     }
 
     pub fn update(&mut self, keys: &HashSet<Keycode>, elapsed: f32, tiles: &Vec<Tile>) {
@@ -95,7 +109,7 @@ impl Player {
                 }
                 Keycode::Space => {
                     if self.grounded() {
-                        self.velocity.y = JUMP_SPEED;
+                        self.jump();
                     }
                 }
                 _ => {}
