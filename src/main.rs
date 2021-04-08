@@ -10,8 +10,10 @@ use level::Level;
 use render::Camera;
 
 use sdl2::event::Event;
+use sdl2::image::LoadTexture;
 use sdl2::keyboard::Keycode;
 use std::env;
+use std::fs;
 use std::time::Instant;
 
 const FIXED_TIMESTEP: f32 = 1.0 / 60.0;
@@ -36,6 +38,22 @@ fn main() -> Result<(), String> {
         .present_vsync()
         .build()
         .expect("could not build canvas from window, quiting");
+
+    let texture_creator = canvas.texture_creator();
+
+    // TODO Should probably use glob for this...
+    let assets = fs::read_dir("assets") //
+        .expect("Error reading assets folder");
+    let textures: Vec<_> = assets
+        .filter_map(|entry| match entry {
+            Ok(e) => Some(e.path()),
+            _ => None,
+        })
+        .filter_map(|path| match path.extension() {
+            Some(ext) if ext == "png" => texture_creator.load_texture(path).ok(),
+            _ => None,
+        })
+        .collect();
 
     let mut level = Level::from_file("assets/level.txt") //
         .expect("Error loading level from file");
@@ -82,7 +100,7 @@ fn main() -> Result<(), String> {
             camera.recenter(level.player.position, level.max_bounds());
         }
 
-        render::render(&mut canvas, &camera, &level)?;
+        render::render(&mut canvas, &camera, &level, &textures)?;
     }
 
     Ok(())

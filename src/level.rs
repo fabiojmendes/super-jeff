@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use std::fs;
 use std::io;
+use std::time::Instant;
 use std::vec::Vec;
 
 use glam::{const_vec2, Vec2};
@@ -15,8 +16,10 @@ pub struct Enemy {
     pub spawn: Vec2,
     pub position: Vec2,
     pub sides: Vec2,
-    velocity: Vec2,
+    pub velocity: Vec2,
     health: i32,
+    pub sprite: (i32, i32, u32, u32),
+    timer: Instant,
 }
 
 impl Enemy {
@@ -27,14 +30,22 @@ impl Enemy {
         Enemy {
             spawn: Vec2::ZERO,
             position: Vec2::ZERO,
-            sides: Vec2::new(1.0, 2.0),
+            sides: Vec2::new(1.5, 3.0),
             velocity: Enemy::INITIAL_VELOCITY,
             health: Enemy::INITIAL_HEALTH,
+            sprite: (0, 0, 128, 256),
+            timer: Instant::now(),
         }
     }
 
     pub fn dead(&self) -> bool {
         self.health <= 0
+    }
+
+    pub fn head(&self) -> (Vec2, Vec2) {
+        let head = Vec2::new(self.position.x, self.position.y + self.sides.y / 2.0);
+        (head, Vec2::new(self.sides.x, 0.2))
+
     }
 
     pub fn damage(&mut self, damage: i32) {
@@ -64,6 +75,13 @@ impl Enemy {
         }
         let displacement = self.velocity * elapsed;
         self.position += displacement;
+
+        if self.velocity.x.abs() > 0.0 {
+            let col: i32 = (self.timer.elapsed().as_millis() as i32 / 160 % 4) * 128;
+            self.sprite = (col, 0, 128, 256);
+        } else {
+            self.sprite = (0, 0, 128, 256);
+        }
     }
 }
 
@@ -147,7 +165,8 @@ impl Level {
         }
 
         for e in self.enemies.iter_mut().filter(|e| !e.dead()) {
-            if self.player.attack(e.position, e.sides) {
+            let (head_pos, head_rect) = e.head();
+            if self.player.attack(head_pos, head_rect) {
                 e.damage(1);
             } else if physics::collides(
                 self.player.position,

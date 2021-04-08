@@ -88,7 +88,7 @@ impl Player {
 
     pub fn foot_rect(&self) -> (Vec2, Vec2) {
         let foot = Vec2::new(self.position.x, self.position.y - self.sides.y / 2.0);
-        (foot, Vec2::new(self.sides.x - 0.25, 0.15))
+        (foot, Vec2::new(self.sides.x, 0.2))
     }
 
     pub fn update(&mut self, keys: &HashSet<Keycode>, elapsed: f32, tiles: &Vec<Tile>) {
