@@ -11,9 +11,17 @@ use render::Camera;
 
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
+use std::env;
 use std::time::Instant;
 
+const FIXED_TIMESTEP: f32 = 1.0 / 60.0;
+
 fn main() -> Result<(), String> {
+    let fixed = env::args().find(|arg| arg == "--fixed").is_some();
+    if fixed {
+        println!("Using fixed timestep: {}", FIXED_TIMESTEP);
+    }
+
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
 
@@ -29,7 +37,7 @@ fn main() -> Result<(), String> {
         .build()
         .expect("could not build canvas from window, quiting");
 
-    let mut level = Level::from_file("level.txt") //
+    let mut level = Level::from_file("assets/level.txt") //
         .expect("Error loading level from file");
 
     let mut camera = Camera::new(canvas.output_size()?);
@@ -43,15 +51,19 @@ fn main() -> Result<(), String> {
                     break 'running;
                 }
                 Event::KeyDown { keycode: Some(Keycode::R), .. } => {
-                    level = Level::from_file("level.txt") //
+                    level = Level::from_file("assets/level.txt") //
                         .expect("Error loading level from file");
                 }
                 _ => {}
             }
         }
-        let delta = timer.elapsed();
-        let elapsed = delta.as_millis() as f32 / 1000.0;
-        timer += delta;
+        let elapsed = if fixed {
+            FIXED_TIMESTEP
+        } else {
+            let delta = timer.elapsed();
+            timer += delta;
+            delta.as_millis() as f32 / 1000.0
+        };
 
         // Create a set of pressed Keys.
         let keys = event_pump
