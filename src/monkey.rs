@@ -41,6 +41,11 @@ impl Monkey {
         }
     }
 
+    pub fn head(&self) -> (Vec2, Vec2) {
+        let head = Vec2::new(self.position.x, self.position.y + self.sides.y / 2.0);
+        (head, Vec2::new(self.sides.x, 0.2))
+    }
+
     fn rage(&mut self) {
         self.enranged = true;
         self.bananas_thrown = 0;

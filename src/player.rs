@@ -1,6 +1,7 @@
 use glam::{const_vec2, Vec2};
 use sdl2::keyboard::Keycode;
 use std::collections::HashSet;
+use std::time::Instant;
 
 use crate::level::Tile;
 use crate::physics;
@@ -19,6 +20,8 @@ pub struct Player {
     pub dead: bool,
     grounded: bool,
     crouched: bool,
+    pub sprite: (i32, i32, u32, u32),
+    timer: Instant,
 }
 
 impl Player {
@@ -31,6 +34,8 @@ impl Player {
             dead: false,
             grounded: false,
             crouched: false,
+            sprite: (0, 0, 128, 256),
+            timer: Instant::now(),
         }
     }
 
@@ -162,6 +167,15 @@ impl Player {
         }
         // Apply new Position
         self.position += displacement;
+
+        let col: i32 = (self.timer.elapsed().as_millis() as i32 / 160 % 4) * 128;
+        if !self.grounded() {
+            self.sprite = (0, 256, 128, 256);
+        } else if self.velocity.x.abs() > 0.0 {
+            self.sprite = (col, 256, 128, 256);
+        } else {
+            self.sprite = (col, 0, 128, 256);
+        }
     }
 
     // fn state(&self) -> PlayerState {

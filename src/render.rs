@@ -2,6 +2,7 @@ use glam::Vec2;
 use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
 use sdl2::render::{Texture, WindowCanvas};
+use std::collections::HashMap;
 
 use crate::level::Level;
 
@@ -14,7 +15,7 @@ pub struct Camera {
 
 impl Camera {
     const WIDTH: f32 = 32.0;
-    const HEIGTH: f32 = 24.0;
+    const HEIGTH: f32 = 18.0;
 
     pub fn new(size: (u32, u32)) -> Camera {
         Camera {
@@ -48,7 +49,7 @@ pub fn render(
     canvas: &mut WindowCanvas,
     camera: &Camera,
     level: &Level,
-    textures: &Vec<Texture>,
+    textures: &HashMap<String, Texture>,
 ) -> Result<(), String> {
     canvas.set_draw_color(Color::GRAY);
     canvas.clear();
@@ -61,14 +62,14 @@ pub fn render(
         canvas.draw_point(p)?;
     }
 
-    for (i, e) in level.enemies.iter().enumerate() {
+    for e in &level.enemies {
         let p = Point::from(camera.to_pixels(e.position));
         canvas.set_draw_color(Color::BLACK);
         let rect = e.sides * camera.scale();
         if !e.dead() {
             let src = Rect::from(e.sprite);
             let dst = Rect::from_center(p, rect.x as u32, rect.y as u32);
-            if let Some(tx) = textures.get(i % textures.len()) {
+            if let Some(tx) = textures.get("andi") {
                 canvas.copy_ex(tx, src, dst, 0.0, None, e.velocity.x < 0.0, false)?;
             }
             // // Hit box
@@ -91,6 +92,11 @@ pub fn render(
     } else {
         canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
     }
+    let (head_pos, head_rect) = level.monkey.head();
+    let head_point = Point::from(camera.to_pixels(head_pos));
+    canvas.set_draw_color(Color::GREEN);
+    let rect = head_rect * camera.scale();
+    canvas.fill_rect(Rect::from_center(head_point, rect.x as u32, rect.y as u32))?;
 
     for b in &level.monkey.bananas {
         let p = Point::from(camera.to_pixels(b.position));
@@ -100,9 +106,12 @@ pub fn render(
     }
 
     let p = Point::from(camera.to_pixels(level.player.position));
-    canvas.set_draw_color(Color::BLUE);
+    let src = Rect::from(level.player.sprite);
     let rect = level.player.sides() * camera.scale();
-    canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
+    let dst = Rect::from_center(p, rect.x as u32, rect.y as u32);
+    if let Some(tx) = textures.get("jeff") {
+        canvas.copy_ex(tx, src, dst, 0.0, None, level.player.velocity.x < 0.0, false)?;
+    }
 
     // let (foot_pos, foot_rect) = level.player.foot_rect();
     // let foot_point = Point::from(camera.to_pixels(foot_pos));

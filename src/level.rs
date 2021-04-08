@@ -145,7 +145,8 @@ impl Level {
 
         // Resolve Collisions
         if !self.monkey.dead() {
-            if self.player.attack(self.monkey.position, self.monkey.sides) {
+            let (head_pos, head_rect) = self.monkey.head();
+            if self.player.attack(head_pos, head_rect) {
                 self.monkey.damage(1);
             } else if physics::collides(
                 self.player.position,

@@ -12,6 +12,7 @@ use render::Camera;
 use sdl2::event::Event;
 use sdl2::image::LoadTexture;
 use sdl2::keyboard::Keycode;
+use std::collections::HashMap;
 use std::env;
 use std::fs;
 use std::time::Instant;
@@ -28,7 +29,7 @@ fn main() -> Result<(), String> {
     let video_subsystem = sdl_context.video()?;
 
     let window = video_subsystem
-        .window("Super Jeff", 1024, 768)
+        .window("Super Jeff", 1980, 1080)
         .position_centered()
         .build()
         .expect("could not build video subsystem");
@@ -44,14 +45,20 @@ fn main() -> Result<(), String> {
     // TODO Should probably use glob for this...
     let assets = fs::read_dir("assets") //
         .expect("Error reading assets folder");
-    let textures: Vec<_> = assets
+    let textures: HashMap<_, _> = assets
         .filter_map(|entry| match entry {
             Ok(e) => Some(e.path()),
             _ => None,
         })
-        .filter_map(|path| match path.extension() {
-            Some(ext) if ext == "png" => texture_creator.load_texture(path).ok(),
-            _ => None,
+        .filter_map(|path| {
+            let name = String::from(path.file_stem()?.to_str()?);
+            match path.extension() {
+                Some(ext) if ext == "png" => match texture_creator.load_texture(path) {
+                    Ok(tx) => Some((name, tx)),
+                    _ => None,
+                },
+                _ => None,
+            }
         })
         .collect();
 
