@@ -12,9 +12,7 @@ use render::Camera;
 use sdl2::event::Event;
 use sdl2::image::LoadTexture;
 use sdl2::keyboard::Keycode;
-use std::collections::HashMap;
 use std::env;
-use std::fs;
 use std::time::Instant;
 
 const FIXED_TIMESTEP: f32 = 1.0 / 60.0;
@@ -29,7 +27,7 @@ fn main() -> Result<(), String> {
     let video_subsystem = sdl_context.video()?;
 
     let window = video_subsystem
-        .window("Super Jeff", 1980, 1080)
+        .window("Super Jeff", 1280, 720)
         .position_centered()
         .build()
         .expect("could not build video subsystem");
@@ -42,25 +40,19 @@ fn main() -> Result<(), String> {
 
     let texture_creator = canvas.texture_creator();
 
-    // TODO Should probably use glob for this...
-    let assets = fs::read_dir("assets") //
-        .expect("Error reading assets folder");
-    let textures: HashMap<_, _> = assets
-        .filter_map(|entry| match entry {
-            Ok(e) => Some(e.path()),
-            _ => None,
-        })
-        .filter_map(|path| {
-            let name = String::from(path.file_stem()?.to_str()?);
-            match path.extension() {
-                Some(ext) if ext == "png" => match texture_creator.load_texture(path) {
-                    Ok(tx) => Some((name, tx)),
-                    _ => None,
-                },
-                _ => None,
-            }
-        })
-        .collect();
+    // TODO: Figure a better way to handle textures
+    let textures = vec![
+        texture_creator.load_texture("assets/jeff.png")?,
+        texture_creator.load_texture("assets/andi.png")?,
+        texture_creator.load_texture("assets/leandro.png")?,
+        texture_creator.load_texture("assets/paulo.png")?,
+        texture_creator.load_texture("assets/vereador.png")?,
+        texture_creator.load_texture("assets/newton.png")?,
+        texture_creator.load_texture("assets/be-pimp.png")?,
+        texture_creator.load_texture("assets/gold.png")?,
+        texture_creator.load_texture("assets/lopes.png")?,
+        texture_creator.load_texture("assets/ronald.png")?,
+    ];
 
     let mut level = Level::from_file("assets/level.txt") //
         .expect("Error loading level from file");

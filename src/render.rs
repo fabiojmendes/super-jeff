@@ -2,7 +2,6 @@ use glam::Vec2;
 use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
 use sdl2::render::{Texture, WindowCanvas};
-use std::collections::HashMap;
 
 use crate::level::Level;
 
@@ -49,7 +48,7 @@ pub fn render(
     canvas: &mut WindowCanvas,
     camera: &Camera,
     level: &Level,
-    textures: &HashMap<String, Texture>,
+    textures: &Vec<Texture>,
 ) -> Result<(), String> {
     canvas.set_draw_color(Color::GRAY);
     canvas.clear();
@@ -61,15 +60,16 @@ pub fn render(
         canvas.draw_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
         canvas.draw_point(p)?;
     }
+    let enemy_textures = &textures[1..];
 
-    for e in &level.enemies {
+    for (i, e) in level.enemies.iter().enumerate() {
         let p = Point::from(camera.to_pixels(e.position));
         canvas.set_draw_color(Color::BLACK);
         let rect = e.sides * camera.scale();
         if !e.dead() {
             let src = Rect::from(e.sprite);
             let dst = Rect::from_center(p, rect.x as u32, rect.y as u32);
-            if let Some(tx) = textures.get("andi") {
+            if let Some(tx) = enemy_textures.get(i % enemy_textures.len()) {
                 canvas.copy_ex(tx, src, dst, 0.0, None, e.velocity.x < 0.0, false)?;
             }
             // // Hit box
@@ -109,7 +109,7 @@ pub fn render(
     let src = Rect::from(level.player.sprite);
     let rect = level.player.sides() * camera.scale();
     let dst = Rect::from_center(p, rect.x as u32, rect.y as u32);
-    if let Some(tx) = textures.get("jeff") {
+    if let Some(tx) = textures.get(0) {
         canvas.copy_ex(tx, src, dst, 0.0, None, level.player.velocity.x < 0.0, false)?;
     }
 

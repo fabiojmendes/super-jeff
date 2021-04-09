@@ -170,7 +170,7 @@ impl Player {
 
         let col: i32 = (self.timer.elapsed().as_millis() as i32 / 160 % 4) * 128;
         if !self.grounded() {
-            self.sprite = (0, 256, 128, 256);
+            self.sprite = (0, 512, 128, 256);
         } else if self.velocity.x.abs() > 0.0 {
             self.sprite = (col, 256, 128, 256);
         } else {
