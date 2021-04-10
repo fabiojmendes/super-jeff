@@ -96,11 +96,13 @@ pub fn render(
             canvas.copy_ex(tx, src, dst, 0.0, None, level.monkey.right(), false)?;
         }
     }
-    let (head_pos, head_rect) = level.monkey.head();
-    let head_point = Point::from(camera.to_pixels(head_pos));
-    canvas.set_draw_color(Color::GREEN);
-    let rect = head_rect * camera.scale();
-    canvas.fill_rect(Rect::from_center(head_point, rect.x as u32, rect.y as u32))?;
+
+    // Monkey Hit Box
+    // let (head_pos, head_rect) = level.monkey.head();
+    // let head_point = Point::from(camera.to_pixels(head_pos));
+    // canvas.set_draw_color(Color::GREEN);
+    // let rect = head_rect * camera.scale();
+    // canvas.fill_rect(Rect::from_center(head_point, rect.x as u32, rect.y as u32))?;
 
     for b in &level.monkey.bananas {
         let p = Point::from(camera.to_pixels(b.position));

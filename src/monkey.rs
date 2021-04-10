@@ -32,7 +32,7 @@ impl Monkey {
         Monkey {
             spawn: Vec2::ZERO,
             position: Vec2::ZERO,
-            sides: Vec2::new(2.0, 4.0),
+            sides: Vec2::new(4.0, 4.0),
             velocity: Vec2::ZERO,
             bananas: Vec::new(),
             bananas_thrown: 0,
@@ -41,7 +41,7 @@ impl Monkey {
             rage_velocity: Vec2::new(-15.0, 0.0),
             health: Monkey::INITIAL_HEALTH,
             right: true,
-            sprite: (0, 0, 128, 256),
+            sprite: (0, 0, 256, 256),
         }
     }
 
