@@ -14,9 +14,11 @@ pub struct Monkey {
     pub sides: Vec2,
     pub velocity: Vec2,
     pub bananas: Vec<Banana>,
+    next_throw: Duration,
+    bananas_thrown: i32,
+    bananas_before_rage: i32,
     pub enranged: bool,
     timer: Instant,
-    bananas_thrown: i32,
     rage_velocity: Vec2,
     health: i32,
     pub right: bool,
@@ -32,10 +34,12 @@ impl Monkey {
         Monkey {
             spawn: Vec2::ZERO,
             position: Vec2::ZERO,
-            sides: Vec2::new(4.0, 4.0),
+            sides: Vec2::new(2.0, 4.0),
             velocity: Vec2::ZERO,
             bananas: Vec::new(),
             bananas_thrown: 0,
+            bananas_before_rage: 7,
+            next_throw: Duration::from_millis(1500),
             timer: Instant::now(),
             enranged: false,
             rage_velocity: Vec2::new(-15.0, 0.0),
@@ -114,10 +118,12 @@ impl Monkey {
                     break;
                 }
             }
-        } else if self.bananas_thrown >= rng.gen_range(5..10) {
+        } else if self.bananas_thrown >= self.bananas_before_rage {
             self.rage();
-        } else if self.timer.elapsed() > Duration::from_millis(rng.gen_range(1000..2000)) {
+            self.bananas_before_rage = rng.gen_range(5..10);
+        } else if self.timer.elapsed() > self.next_throw {
             self.timer += self.timer.elapsed();
+            self.next_throw = Duration::from_millis(rng.gen_range(1000..2000));
             self.throw_banana(target);
         }
 
