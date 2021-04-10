@@ -47,7 +47,7 @@ impl Monkey {
 
     pub fn right(&self) -> bool {
         if self.enranged {
-            self.velocity.x < 0.0
+            self.rage_velocity.x < 0.0
         } else {
             self.right
         }
@@ -73,11 +73,10 @@ impl Monkey {
         let yvel =
             (rand::random::<f32>() * 4.0 + 2.0 * self.health as f32) + (displacement.x.abs() / 4.0);
 
-        println!("Velocity: {:.2}, Health: {}", yvel, self.health);
         // Calculate the trajectory based on the random y velocity and distance from target
         // https://www.dummies.com/education/science/physics/calculate-the-range-of-a-projectile-fired-at-an-angle/
         let velocity = Vec2::new(((displacement.x * -physics::GRAVITY.y) / yvel) / 2.0, yvel);
-        self.bananas.push(Banana { position: self.position, sides: Vec2::new(0.5, 0.3), velocity });
+        self.bananas.push(Banana { position: self.position, sides: Vec2::new(0.8, 0.4), velocity });
         self.bananas_thrown += 1;
     }
 

@@ -9,6 +9,7 @@ mod render;
 use level::Level;
 use render::Camera;
 
+use glam::Vec2;
 use sdl2::event::Event;
 use sdl2::image::LoadTexture;
 use sdl2::keyboard::Keycode;
@@ -44,6 +45,7 @@ fn main() -> Result<(), String> {
     let textures = vec![
         texture_creator.load_texture("assets/jeff.png")?,
         texture_creator.load_texture("assets/monkey.png")?,
+        texture_creator.load_texture("assets/banana.png")?,
         texture_creator.load_texture("assets/andi.png")?,
         texture_creator.load_texture("assets/leandro.png")?,
         texture_creator.load_texture("assets/paulo.png")?,
@@ -95,7 +97,8 @@ fn main() -> Result<(), String> {
         }
 
         if level.trapped {
-            camera.recenter(level.max_bounds(), level.max_bounds());
+            let bottom_right = Vec2::new(level.max_bounds().x, level.min_bounds().y);
+            camera.recenter(bottom_right, level.max_bounds());
         } else {
             camera.recenter(level.player.position, level.max_bounds());
         }

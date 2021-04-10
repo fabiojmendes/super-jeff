@@ -60,7 +60,7 @@ pub fn render(
         canvas.draw_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
         canvas.draw_point(p)?;
     }
-    let enemy_textures = &textures[2..];
+    let enemy_textures = &textures[3..];
 
     for (i, e) in level.enemies.iter().enumerate() {
         let p = Point::from(camera.to_pixels(e.position));
@@ -106,7 +106,10 @@ pub fn render(
         let p = Point::from(camera.to_pixels(b.position));
         canvas.set_draw_color(Color::YELLOW);
         let rect = b.sides * camera.scale();
-        canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
+        let dst = Rect::from_center(p, rect.x as u32, rect.y as u32);
+        if let Some(tx) = textures.get(2) {
+            canvas.copy(tx, None, dst)?;
+        }
     }
 
     let p = Point::from(camera.to_pixels(level.player.position));
