@@ -43,6 +43,7 @@ fn main() -> Result<(), String> {
     // TODO: Figure a better way to handle textures
     let textures = vec![
         texture_creator.load_texture("assets/jeff.png")?,
+        texture_creator.load_texture("assets/monkey.png")?,
         texture_creator.load_texture("assets/andi.png")?,
         texture_creator.load_texture("assets/leandro.png")?,
         texture_creator.load_texture("assets/paulo.png")?,

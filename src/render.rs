@@ -60,7 +60,7 @@ pub fn render(
         canvas.draw_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
         canvas.draw_point(p)?;
     }
-    let enemy_textures = &textures[1..];
+    let enemy_textures = &textures[2..];
 
     for (i, e) in level.enemies.iter().enumerate() {
         let p = Point::from(camera.to_pixels(e.position));
@@ -90,7 +90,11 @@ pub fn render(
     if level.monkey.dead() {
         canvas.draw_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
     } else {
-        canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
+        let src = Rect::from(level.monkey.sprite);
+        let dst = Rect::from_center(p, rect.x as u32, rect.y as u32);
+        if let Some(tx) = textures.get(1) {
+            canvas.copy_ex(tx, src, dst, 0.0, None, level.monkey.right(), false)?;
+        }
     }
     let (head_pos, head_rect) = level.monkey.head();
     let head_point = Point::from(camera.to_pixels(head_pos));

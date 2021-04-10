@@ -19,10 +19,12 @@ pub struct Monkey {
     bananas_thrown: i32,
     rage_velocity: Vec2,
     health: i32,
+    pub right: bool,
+    pub sprite: (i32, i32, u32, u32),
 }
 
 impl Monkey {
-    const RAGE_DELAY: Duration = Duration::from_millis(750);
+    const RAGE_DELAY: Duration = Duration::from_millis(250);
     const BANANA_MAX_DISTANCE: f32 = 30.0;
     const INITIAL_HEALTH: i32 = 3;
 
@@ -30,7 +32,7 @@ impl Monkey {
         Monkey {
             spawn: Vec2::ZERO,
             position: Vec2::ZERO,
-            sides: Vec2::new(2.0, 3.5),
+            sides: Vec2::new(2.0, 4.0),
             velocity: Vec2::ZERO,
             bananas: Vec::new(),
             bananas_thrown: 0,
@@ -38,6 +40,16 @@ impl Monkey {
             enranged: false,
             rage_velocity: Vec2::new(-15.0, 0.0),
             health: Monkey::INITIAL_HEALTH,
+            right: true,
+            sprite: (0, 0, 128, 256),
+        }
+    }
+
+    pub fn right(&self) -> bool {
+        if self.enranged {
+            self.velocity.x < 0.0
+        } else {
+            self.right
         }
     }
 
@@ -53,14 +65,18 @@ impl Monkey {
 
     fn throw_banana(&mut self, target: Vec2) {
         let displacement = target - self.position;
+        self.right = displacement.x < 0.0;
         if displacement.x.abs() > Monkey::BANANA_MAX_DISTANCE {
             return;
         }
-        // Random y velocity based on the distance from the target
-        let yvel = (rand::random::<f32>() * 7.5) + (displacement.x.abs() / 2.0);
+        // Random y velocity based on current health the distance from the target
+        let yvel =
+            (rand::random::<f32>() * 4.0 + 2.0 * self.health as f32) + (displacement.x.abs() / 4.0);
+
+        println!("Velocity: {:.2}, Health: {}", yvel, self.health);
         // Calculate the trajectory based on the random y velocity and distance from target
         // https://www.dummies.com/education/science/physics/calculate-the-range-of-a-projectile-fired-at-an-angle/
-        let velocity = Vec2::new((displacement.x * -physics::GRAVITY.y / yvel) / 2.0, yvel);
+        let velocity = Vec2::new(((displacement.x * -physics::GRAVITY.y) / yvel) / 2.0, yvel);
         self.bananas.push(Banana { position: self.position, sides: Vec2::new(0.5, 0.3), velocity });
         self.bananas_thrown += 1;
     }
@@ -74,6 +90,7 @@ impl Monkey {
             return;
         }
         self.health -= amount;
+        self.rage_velocity.x += 5.0 * self.rage_velocity.x.signum();
         if self.dead() {
             self.velocity = Vec2::ZERO;
         } else {
@@ -85,7 +102,7 @@ impl Monkey {
         let mut rng = rand::thread_rng();
         if self.dead() {
             // Skip
-        } else if self.enranged && self.timer.elapsed() >= Monkey::RAGE_DELAY {
+        } else if self.enranged && self.timer.elapsed() >= Monkey::RAGE_DELAY * self.health as u32 {
             self.velocity = self.rage_velocity;
             for t in tiles {
                 let displacement = self.velocity.signum() * Vec2::X;
