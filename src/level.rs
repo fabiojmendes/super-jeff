@@ -84,8 +84,6 @@ impl Enemy {
     }
 }
 
-const TILE_SIDE: f32 = 1.0;
-
 #[derive(Debug)]
 pub struct Tile {
     pub position: Vec2,
@@ -94,6 +92,7 @@ pub struct Tile {
 }
 
 impl Tile {
+    const SIDE: f32 = 1.0;
     const LEFT: (i32, i32, u32, u32) = (0, 0, 64, 64);
     const RIGHT: (i32, i32, u32, u32) = (64, 0, 64, 64);
     const CENTER: (i32, i32, u32, u32) = (128, 0, 64, 64);
@@ -190,7 +189,7 @@ impl Level {
     }
 
     fn offset(position: Vec2, y_side: f32) -> Vec2 {
-        position + (Vec2::Y * (y_side - TILE_SIDE) / 2.0)
+        position + (Vec2::Y * (y_side - Tile::SIDE) / 2.0)
     }
 
     pub fn from_file(filename: &str) -> io::Result<Level> {
@@ -209,7 +208,7 @@ impl Level {
             level.bounds.y = level.bounds.y.max((*y + 1) as f32);
         }
 
-        let tile_offset = Vec2::new(TILE_SIDE / 2.0, -TILE_SIDE / 2.0);
+        let tile_offset = Vec2::new(Tile::SIDE / 2.0, -Tile::SIDE / 2.0);
         let offset = level.bounds / 2.0;
 
         for (x, y, c) in level_coords {
@@ -218,28 +217,28 @@ impl Level {
                 '[' => {
                     level.tiles.push(Tile {
                         position: world_pos,
-                        sides: Vec2::new(TILE_SIDE, TILE_SIDE),
+                        sides: Vec2::new(Tile::SIDE, Tile::SIDE),
                         sprite: Tile::LEFT,
                     });
                 }
                 '=' => {
                     level.tiles.push(Tile {
                         position: world_pos,
-                        sides: Vec2::new(TILE_SIDE, TILE_SIDE),
+                        sides: Vec2::new(Tile::SIDE, Tile::SIDE),
                         sprite: Tile::CENTER,
                     });
                 }
                 ']' => {
                     level.tiles.push(Tile {
                         position: world_pos,
-                        sides: Vec2::new(TILE_SIDE, TILE_SIDE),
+                        sides: Vec2::new(Tile::SIDE, Tile::SIDE),
                         sprite: Tile::RIGHT,
                     });
                 }
                 '#' => {
                     level.tiles.push(Tile {
                         position: world_pos,
-                        sides: Vec2::new(TILE_SIDE, TILE_SIDE),
+                        sides: Vec2::new(Tile::SIDE, Tile::SIDE),
                         sprite: Tile::BOTTOM,
                     });
                 }
