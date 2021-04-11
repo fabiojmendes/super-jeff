@@ -8,10 +8,10 @@ mod render;
 
 use level::Level;
 use render::Camera;
+use render::TextureManager;
 
 use glam::Vec2;
 use sdl2::event::Event;
-use sdl2::image::LoadTexture;
 use sdl2::keyboard::Keycode;
 use std::env;
 use std::time::Instant;
@@ -41,21 +41,7 @@ fn main() -> Result<(), String> {
 
     let texture_creator = canvas.texture_creator();
 
-    // TODO: Figure a better way to handle textures
-    let textures = vec![
-        texture_creator.load_texture("assets/jeff.png")?,
-        texture_creator.load_texture("assets/monkey.png")?,
-        texture_creator.load_texture("assets/banana.png")?,
-        texture_creator.load_texture("assets/andi.png")?,
-        texture_creator.load_texture("assets/leandro.png")?,
-        texture_creator.load_texture("assets/paulo.png")?,
-        texture_creator.load_texture("assets/vereador.png")?,
-        texture_creator.load_texture("assets/newton.png")?,
-        texture_creator.load_texture("assets/be-pimp.png")?,
-        texture_creator.load_texture("assets/gold.png")?,
-        texture_creator.load_texture("assets/lopes.png")?,
-        texture_creator.load_texture("assets/ronald.png")?,
-    ];
+    let tx_manager = TextureManager::load(&texture_creator)?;
 
     let mut level = Level::from_file("assets/level.txt") //
         .expect("Error loading level from file");
@@ -103,7 +89,7 @@ fn main() -> Result<(), String> {
             camera.recenter(level.player.position, level.max_bounds());
         }
 
-        render::render(&mut canvas, &camera, &level, &textures)?;
+        render::render(&mut canvas, &camera, &level, &tx_manager)?;
     }
 
     Ok(())

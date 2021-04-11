@@ -1,9 +1,40 @@
 use glam::Vec2;
+use sdl2::image::LoadTexture;
 use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
+use sdl2::render::TextureCreator;
 use sdl2::render::{Texture, WindowCanvas};
+use sdl2::video::WindowContext;
 
 use crate::level::Level;
+
+pub struct TextureManager<'a> {
+    jeff: Texture<'a>,
+    monkey: Texture<'a>,
+    banana: Texture<'a>,
+    enemies: Vec<Texture<'a>>,
+}
+
+impl<'a> TextureManager<'a> {
+    pub fn load(texture_creator: &TextureCreator<WindowContext>) -> Result<TextureManager, String> {
+        let jeff = texture_creator.load_texture("assets/jeff.png")?;
+        let monkey = texture_creator.load_texture("assets/monkey.png")?;
+        let banana = texture_creator.load_texture("assets/banana.png")?;
+        let enemies = vec![
+            texture_creator.load_texture("assets/andi.png")?,
+            texture_creator.load_texture("assets/leandro.png")?,
+            texture_creator.load_texture("assets/paulo.png")?,
+            texture_creator.load_texture("assets/vereador.png")?,
+            texture_creator.load_texture("assets/newton.png")?,
+            texture_creator.load_texture("assets/be-pimp.png")?,
+            texture_creator.load_texture("assets/gold.png")?,
+            texture_creator.load_texture("assets/lopes.png")?,
+            texture_creator.load_texture("assets/ronald.png")?,
+        ];
+
+        Ok(TextureManager { jeff, monkey, banana, enemies })
+    }
+}
 
 #[derive(Debug)]
 pub struct Camera {
@@ -48,7 +79,7 @@ pub fn render(
     canvas: &mut WindowCanvas,
     camera: &Camera,
     level: &Level,
-    textures: &Vec<Texture>,
+    tx_manager: &TextureManager,
 ) -> Result<(), String> {
     canvas.set_draw_color(Color::GRAY);
     canvas.clear();
@@ -60,7 +91,6 @@ pub fn render(
         canvas.draw_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
         canvas.draw_point(p)?;
     }
-    let enemy_textures = &textures[3..];
 
     for (i, e) in level.enemies.iter().enumerate() {
         let p = Point::from(camera.to_pixels(e.position));
@@ -69,8 +99,10 @@ pub fn render(
         if !e.dead() {
             let src = Rect::from(e.sprite);
             let dst = Rect::from_center(p, rect.x as u32, rect.y as u32);
-            if let Some(tx) = enemy_textures.get(i % enemy_textures.len()) {
-                canvas.copy_ex(tx, src, dst, 0.0, None, e.velocity.x < 0.0, false)?;
+            if let Some(tex) = tx_manager.enemies.get(i % tx_manager.enemies.len()) {
+                canvas.copy_ex(tex, src, dst, 0.0, None, e.velocity.x < 0.0, false)?;
+            } else {
+                canvas.draw_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
             }
             // // Hit box
             // canvas.draw_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
@@ -92,9 +124,7 @@ pub fn render(
     } else {
         let src = Rect::from(level.monkey.sprite);
         let dst = Rect::from_center(p, rect.x as u32, rect.y as u32);
-        if let Some(tx) = textures.get(1) {
-            canvas.copy_ex(tx, src, dst, 0.0, None, level.monkey.right(), false)?;
-        }
+        canvas.copy_ex(&tx_manager.monkey, src, dst, 0.0, None, level.monkey.right(), false)?;
     }
 
     // Monkey Hit Box
@@ -109,18 +139,14 @@ pub fn render(
         canvas.set_draw_color(Color::YELLOW);
         let rect = b.sides * camera.scale();
         let dst = Rect::from_center(p, rect.x as u32, rect.y as u32);
-        if let Some(tx) = textures.get(2) {
-            canvas.copy(tx, None, dst)?;
-        }
+        canvas.copy(&tx_manager.banana, None, dst)?;
     }
 
     let p = Point::from(camera.to_pixels(level.player.position));
     let src = Rect::from(level.player.sprite);
     let rect = level.player.sides() * camera.scale();
     let dst = Rect::from_center(p, rect.x as u32, rect.y as u32);
-    if let Some(tx) = textures.get(0) {
-        canvas.copy_ex(tx, src, dst, 0.0, None, level.player.velocity.x < 0.0, false)?;
-    }
+    canvas.copy_ex(&tx_manager.jeff, src, dst, 0.0, None, level.player.velocity.x < 0.0, false)?;
 
     // let (foot_pos, foot_rect) = level.player.foot_rect();
     // let foot_point = Point::from(camera.to_pixels(foot_pos));
