@@ -138,9 +138,12 @@ impl Monkey {
 
         match self.next_throw.checked_sub(self.ai_timer.elapsed()) {
             Some(d) if d <= Duration::from_millis(50 * 4) && !self.enranged => {
-                let col = (self.anim_timer / 50 % 5) * 128;
+                let col = (self.anim_timer / 50 % 4) * 128;
                 self.sprite = (col, 0, 128, 256);
                 self.anim_timer += (elapsed * 1000.0) as i32;
+            }
+            _ if self.enranged => {
+                self.sprite = (4 * 128, 0, 128, 256);
             }
             _ => {
                 self.sprite = (0, 0, 128, 256);
