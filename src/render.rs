@@ -87,12 +87,8 @@ pub fn render(
     canvas.clear();
 
     for t in &level.tiles {
-        // canvas.set_draw_color(Color::RGB(127, 0, 0));
         let p = Point::from(camera.to_pixels(t.position));
         let rect = t.sides * camera.scale();
-        // canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
-        // canvas.draw_point(p)?;
-        // let src = Rect::from(t.sprite);
         let src = Rect::from(t.sprite);
         let dst = Rect::from_center(p, rect.x as u32, rect.y as u32);
         canvas.copy(&tx_manager.tiles, src, dst)?;
