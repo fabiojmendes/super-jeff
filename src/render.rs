@@ -12,6 +12,7 @@ pub struct TextureManager<'a> {
     jeff: Texture<'a>,
     monkey: Texture<'a>,
     banana: Texture<'a>,
+    tiles: Texture<'a>,
     enemies: Vec<Texture<'a>>,
 }
 
@@ -20,6 +21,7 @@ impl<'a> TextureManager<'a> {
         let jeff = texture_creator.load_texture("assets/jeff.png")?;
         let monkey = texture_creator.load_texture("assets/monkey.png")?;
         let banana = texture_creator.load_texture("assets/banana.png")?;
+        let tiles = texture_creator.load_texture("assets/tiles.png")?;
         let enemies = vec![
             texture_creator.load_texture("assets/andi.png")?,
             texture_creator.load_texture("assets/leandro.png")?,
@@ -32,7 +34,7 @@ impl<'a> TextureManager<'a> {
             texture_creator.load_texture("assets/ronald.png")?,
         ];
 
-        Ok(TextureManager { jeff, monkey, banana, enemies })
+        Ok(TextureManager { jeff, monkey, banana, tiles, enemies })
     }
 }
 
@@ -81,15 +83,19 @@ pub fn render(
     level: &Level,
     tx_manager: &TextureManager,
 ) -> Result<(), String> {
-    canvas.set_draw_color(Color::GRAY);
+    canvas.set_draw_color(Color::RGB(178, 220, 239));
     canvas.clear();
 
     for t in &level.tiles {
-        canvas.set_draw_color(Color::RGB(127, 0, 0));
+        // canvas.set_draw_color(Color::RGB(127, 0, 0));
         let p = Point::from(camera.to_pixels(t.position));
         let rect = t.sides * camera.scale();
-        canvas.draw_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
-        canvas.draw_point(p)?;
+        // canvas.fill_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
+        // canvas.draw_point(p)?;
+        // let src = Rect::from(t.sprite);
+        let src = Rect::from(t.sprite);
+        let dst = Rect::from_center(p, rect.x as u32, rect.y as u32);
+        canvas.copy(&tx_manager.tiles, src, dst)?;
     }
 
     for (i, e) in level.enemies.iter().enumerate() {

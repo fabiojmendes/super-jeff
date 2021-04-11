@@ -90,6 +90,14 @@ const TILE_SIDE: f32 = 1.0;
 pub struct Tile {
     pub position: Vec2,
     pub sides: Vec2,
+    pub sprite: (i32, i32, u32, u32),
+}
+
+impl Tile {
+    const LEFT: (i32, i32, u32, u32) = (0, 0, 64, 64);
+    const RIGHT: (i32, i32, u32, u32) = (64, 0, 64, 64);
+    const CENTER: (i32, i32, u32, u32) = (128, 0, 64, 64);
+    const BOTTOM: (i32, i32, u32, u32) = (192, 0, 64, 64);
 }
 
 #[derive(Debug)]
@@ -100,7 +108,7 @@ pub struct Level {
     pub player: Player,
     pub monkey: Monkey,
     pub trapped: bool,
-    trap_tiles: Vec<Tile>,
+    trap: Vec2,
 }
 
 impl Level {
@@ -112,7 +120,7 @@ impl Level {
             monkey: Monkey::new(),
             player: Player::new(),
             trapped: false,
-            trap_tiles: Vec::new(),
+            trap: Vec2::ZERO,
         }
     }
 
@@ -129,8 +137,7 @@ impl Level {
 
         self.monkey.udpate(elapsed, self.player.position, &self.tiles);
 
-        if self.trap_tiles.iter().find(|t| self.player.position.x > t.position.x + 1.0).is_some() {
-            self.tiles.append(&mut self.trap_tiles);
+        if self.player.position.x > self.trap.x {
             self.trapped = true;
         }
 
@@ -208,15 +215,36 @@ impl Level {
         for (x, y, c) in level_coords {
             let world_pos = Vec2::new(x as f32 - offset.x, -(y as f32) + offset.y) + tile_offset;
             match c {
+                '[' => {
+                    level.tiles.push(Tile {
+                        position: world_pos,
+                        sides: Vec2::new(TILE_SIDE, TILE_SIDE),
+                        sprite: Tile::LEFT,
+                    });
+                }
+                '=' => {
+                    level.tiles.push(Tile {
+                        position: world_pos,
+                        sides: Vec2::new(TILE_SIDE, TILE_SIDE),
+                        sprite: Tile::CENTER,
+                    });
+                }
+                ']' => {
+                    level.tiles.push(Tile {
+                        position: world_pos,
+                        sides: Vec2::new(TILE_SIDE, TILE_SIDE),
+                        sprite: Tile::RIGHT,
+                    });
+                }
                 '#' => {
-                    level
-                        .tiles
-                        .push(Tile { position: world_pos, sides: Vec2::new(TILE_SIDE, TILE_SIDE) });
+                    level.tiles.push(Tile {
+                        position: world_pos,
+                        sides: Vec2::new(TILE_SIDE, TILE_SIDE),
+                        sprite: Tile::BOTTOM,
+                    });
                 }
                 '@' => {
-                    level
-                        .trap_tiles
-                        .push(Tile { position: world_pos, sides: Vec2::new(TILE_SIDE, TILE_SIDE) });
+                    level.trap = world_pos;
                 }
                 'E' => {
                     let mut e = Enemy::new();
