@@ -18,11 +18,12 @@ pub struct Monkey {
     bananas_thrown: i32,
     bananas_before_rage: i32,
     pub enranged: bool,
-    timer: Instant,
+    ai_timer: Instant,
     rage_velocity: Vec2,
     health: i32,
     pub right: bool,
     pub sprite: (i32, i32, u32, u32),
+    anim_timer: i32,
 }
 
 impl Monkey {
@@ -40,12 +41,13 @@ impl Monkey {
             bananas_thrown: 0,
             bananas_before_rage: 7,
             next_throw: Duration::from_millis(1500),
-            timer: Instant::now(),
+            ai_timer: Instant::now(),
             enranged: false,
             rage_velocity: Vec2::new(-15.0, 0.0),
             health: Monkey::INITIAL_HEALTH,
             right: true,
             sprite: (0, 0, 256, 256),
+            anim_timer: 0,
         }
     }
 
@@ -80,7 +82,9 @@ impl Monkey {
         // Calculate the trajectory based on the random y velocity and distance from target
         // https://www.dummies.com/education/science/physics/calculate-the-range-of-a-projectile-fired-at-an-angle/
         let velocity = Vec2::new(((displacement.x * -physics::GRAVITY.y) / yvel) / 2.0, yvel);
-        self.bananas.push(Banana { position: self.position, sides: Vec2::new(0.8, 0.4), velocity });
+        let position = self.position
+            + Vec2::new(self.sides.x / 2.0 * displacement.x.signum(), -self.sides.y / 4.0);
+        self.bananas.push(Banana { position, sides: Vec2::new(0.8, 0.4), velocity });
         self.bananas_thrown += 1;
     }
 
@@ -105,13 +109,15 @@ impl Monkey {
         let mut rng = rand::thread_rng();
         if self.dead() {
             // Skip
-        } else if self.enranged && self.timer.elapsed() >= Monkey::RAGE_DELAY * self.health as u32 {
+        } else if self.enranged
+            && self.ai_timer.elapsed() >= Monkey::RAGE_DELAY * self.health as u32
+        {
             self.velocity = self.rage_velocity;
             for t in tiles {
                 let displacement = self.velocity.signum() * Vec2::X;
                 if physics::collides(self.position + displacement, self.sides, t.position, t.sides)
                 {
-                    self.timer += self.timer.elapsed();
+                    self.ai_timer += self.ai_timer.elapsed();
                     self.enranged = false;
                     self.velocity = Vec2::ZERO;
                     self.rage_velocity = -self.rage_velocity;
@@ -121,13 +127,25 @@ impl Monkey {
         } else if self.bananas_thrown >= self.bananas_before_rage {
             self.rage();
             self.bananas_before_rage = rng.gen_range(5..10);
-        } else if self.timer.elapsed() > self.next_throw {
-            self.timer += self.timer.elapsed();
+        } else if self.ai_timer.elapsed() > self.next_throw {
+            self.ai_timer += self.ai_timer.elapsed();
             self.next_throw = Duration::from_millis(rng.gen_range(1000..2000));
             self.throw_banana(target);
+            self.anim_timer = 0;
         }
 
         self.position += self.velocity * elapsed;
+
+        match self.next_throw.checked_sub(self.ai_timer.elapsed()) {
+            Some(d) if d <= Duration::from_millis(50 * 4) && !self.enranged => {
+                let col = (self.anim_timer / 50 % 5) * 128;
+                self.sprite = (col, 0, 128, 256);
+                self.anim_timer += (elapsed * 1000.0) as i32;
+            }
+            _ => {
+                self.sprite = (0, 0, 128, 256);
+            }
+        }
 
         for b in &mut self.bananas {
             b.velocity += physics::GRAVITY * elapsed;
