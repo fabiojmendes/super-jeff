@@ -8,7 +8,7 @@ version = "0.1.0"
 # https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies.sdl2]
 default-features = false
-features = ["image", "mixer"]
+features = ["image", "mixer", "ttf"]
 version = "0.34"
 
 [dependencies]

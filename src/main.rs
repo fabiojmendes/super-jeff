@@ -14,6 +14,7 @@ use glam::Vec2;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::mixer::{self, Chunk};
+use sdl2::ttf;
 use std::env;
 use std::time::Instant;
 
@@ -65,6 +66,11 @@ fn main() -> Result<(), String> {
     mixer::Music::set_volume(24);
     music.play(-1)?;
 
+    // Font Subsystem
+    let ttf_context = ttf::init().map_err(|e| e.to_string())?;
+    // Load a font
+    let font = ttf_context.load_font("assets/cocogoose.ttf", 32)?;
+
     let mut level = Level::from_file("assets/level.txt") //
         .expect("Error loading level from file");
 
@@ -81,7 +87,7 @@ fn main() -> Result<(), String> {
                         .expect("Error loading level from file");
                     level.start();
                 }
-                Event::KeyUp { keycode: Some(Keycode::Space), .. } => {
+                Event::KeyUp { keycode: Some(Keycode::Space), .. } if !level.started() => {
                     level.start();
                 }
                 _ => {}
@@ -130,7 +136,7 @@ fn main() -> Result<(), String> {
             camera.recenter(level.player.position, level.max_bounds());
         }
 
-        render::render(&mut canvas, &camera, &level, &tx_manager)?;
+        render::render(&mut canvas, &camera, &level, &tx_manager, &font, &texture_creator)?;
     }
 
     Ok(())

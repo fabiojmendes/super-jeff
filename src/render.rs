@@ -3,7 +3,8 @@ use sdl2::image::LoadTexture;
 use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
 use sdl2::render::TextureCreator;
-use sdl2::render::{Texture, WindowCanvas};
+use sdl2::render::{Texture, TextureQuery, WindowCanvas};
+use sdl2::ttf::Font;
 use sdl2::video::WindowContext;
 
 use crate::level::Level;
@@ -93,6 +94,8 @@ pub fn render(
     camera: &Camera,
     level: &Level,
     tx_manager: &TextureManager,
+    font: &Font,
+    texture_creator: &TextureCreator<WindowContext>,
 ) -> Result<(), String> {
     canvas.set_draw_color(Color::RGB(178, 220, 239));
     canvas.clear();
@@ -110,6 +113,29 @@ pub fn render(
         canvas.copy(bg, None, dst)?;
         let dst = Rect::new(-offset, -20, w, h);
         canvas.copy(bg, None, dst)?;
+    }
+
+    if level.started() && !level.player.dead {
+        let secs = level.timer.elapsed().as_secs();
+        let surface = font
+            .render(&format!("Time: {}:{:02}", secs / 60, secs % 60))
+            .blended(Color::RGB(55, 60, 66))
+            .map_err(|e| e.to_string())?;
+        let texture =
+            texture_creator.create_texture_from_surface(&surface).map_err(|e| e.to_string())?;
+        let TextureQuery { width, height, .. } = texture.query();
+        let dst = Rect::new((camera.screen_size.0 - width - 10) as i32, 10, width, height);
+        canvas.copy(&texture, None, dst)?;
+
+        let surface = font
+            .render(&format!("Score: {}", level.score))
+            .blended(Color::RGB(55, 60, 66))
+            .map_err(|e| e.to_string())?;
+        let texture =
+            texture_creator.create_texture_from_surface(&surface).map_err(|e| e.to_string())?;
+        let TextureQuery { width, height, .. } = texture.query();
+        let dst = Rect::new(10, 10, width, height);
+        canvas.copy(&texture, None, dst)?;
     }
 
     for t in &level.tiles {
@@ -190,9 +216,44 @@ pub fn render(
     // Overlays
     if level.player.dead {
         canvas.copy(&tx_manager.gameover, None, None)?;
-    }
-    if !level.started() {
+    } else if !level.started() {
         canvas.copy(&tx_manager.newgame, None, None)?;
+    } else if let Some(time) = level.final_time {
+        const LINE_BREAK: i32 = 20;
+        let (w, h) = camera.screen_size;
+        let mut center = Point::new(w as i32 / 2, h as i32 / 4);
+        let surface = font
+            .render(&format!("Time: {}:{:02}", time.as_secs() / 60, time.as_secs() % 60))
+            .blended(Color::RGB(55, 60, 66))
+            .map_err(|e| e.to_string())?;
+        let texture =
+            texture_creator.create_texture_from_surface(&surface).map_err(|e| e.to_string())?;
+        let TextureQuery { width, height, .. } = texture.query();
+        center.y += LINE_BREAK;
+        let dst = Rect::from_center(center, width, height);
+        canvas.copy(&texture, None, dst)?;
+
+        let surface = font
+            .render(&format!("Score: {}", level.score))
+            .blended(Color::RGB(55, 60, 66))
+            .map_err(|e| e.to_string())?;
+        let texture =
+            texture_creator.create_texture_from_surface(&surface).map_err(|e| e.to_string())?;
+        let TextureQuery { width, height, .. } = texture.query();
+        center.y += LINE_BREAK;
+        let dst = Rect::from_center(center, width, height);
+        canvas.copy(&texture, None, dst)?;
+
+        let surface = font
+            .render(&format!("Total: {}", level.final_score()))
+            .blended(Color::RGB(55, 60, 66))
+            .map_err(|e| e.to_string())?;
+        let texture =
+            texture_creator.create_texture_from_surface(&surface).map_err(|e| e.to_string())?;
+        let TextureQuery { width, height, .. } = texture.query();
+        center.y += LINE_BREAK;
+        let dst = Rect::from_center(center, width, height);
+        canvas.copy(&texture, None, dst)?;
     }
 
     canvas.present();

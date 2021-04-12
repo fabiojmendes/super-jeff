@@ -109,9 +109,9 @@ pub struct Level {
     pub monkey: Monkey,
     pub trapped: bool,
     trap: Vec2,
-    score: i32,
-    timer: Instant,
-    final_time: Option<Duration>,
+    pub score: i32,
+    pub timer: Instant,
+    pub final_time: Option<Duration>,
 }
 
 impl Level {
@@ -146,6 +146,14 @@ impl Level {
     pub fn start(&mut self) {
         self.started = true;
         self.timer = Instant::now();
+    }
+
+    pub fn final_score(&self) -> i32 {
+        if let Some(time) = self.final_time {
+            (self.score as f32 * 1000.0 / time.as_secs() as f32).round() as i32
+        } else {
+            0
+        }
     }
 
     pub fn update(&mut self, elapsed: f32, keys: &HashSet<Keycode>, sounds: &mut Vec<&str>) {
