@@ -55,6 +55,7 @@ fn main() -> Result<(), String> {
 
     let jump = Chunk::from_file("assets/jump.wav")?;
     let hit = Chunk::from_file("assets/hit.wav")?;
+    let click = Chunk::from_file("assets/click.wav")?;
     let dead = Chunk::from_file("assets/dead.wav")?;
     let fall = Chunk::from_file("assets/fall.wav")?;
     let banana = Chunk::from_file("assets/banana.wav")?;
@@ -104,6 +105,7 @@ fn main() -> Result<(), String> {
             let sound = match s {
                 "jump" => Some(&jump),
                 "hit" => Some(&hit),
+                "click" => Some(&click),
                 "dead" => Some(&dead),
                 "fall" => Some(&fall),
                 "banana" => Some(&banana),

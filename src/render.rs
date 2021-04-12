@@ -24,7 +24,7 @@ impl<'a> TextureManager<'a> {
         let monkey = texture_creator.load_texture("assets/monkey.png")?;
         let banana = texture_creator.load_texture("assets/banana.png")?;
         let tiles = texture_creator.load_texture("assets/tiles.png")?;
-        let gameover = texture_creator.load_texture("assets/game-over.png")?;
+        let gameover = texture_creator.load_texture("assets/gameover.png")?;
         let newgame = texture_creator.load_texture("assets/newgame.png")?;
 
         let enemies = vec![

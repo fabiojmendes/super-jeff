@@ -174,8 +174,11 @@ impl Level {
         // Resolve Collisions
         let (head_pos, head_rect) = self.monkey.head();
         if self.player.attack(head_pos, head_rect) {
-            self.monkey.damage(1);
-            sounds.push("hit");
+            if self.monkey.damage(1) {
+                sounds.push("hit");
+            } else {
+                sounds.push("click");
+            }
         } else if physics::collides(
             self.player.position,
             self.player.sides,

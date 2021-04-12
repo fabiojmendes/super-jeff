@@ -87,9 +87,9 @@ impl Monkey {
         self.health <= 0
     }
 
-    pub fn damage(&mut self, amount: i32) {
+    pub fn damage(&mut self, amount: i32) -> bool{
         if self.enranged {
-            return;
+            return false;
         }
         self.health -= amount;
         self.rage_velocity.x += 5.0 * self.rage_velocity.x.signum();
@@ -98,6 +98,7 @@ impl Monkey {
         } else {
             self.rage();
         }
+        true
     }
 
     pub fn udpate(
