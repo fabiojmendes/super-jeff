@@ -101,6 +101,7 @@ impl Tile {
 
 #[derive(Debug)]
 pub struct Level {
+    pub started: bool,
     bounds: Vec2,
     pub tiles: Vec<Tile>,
     pub enemies: Vec<Enemy>,
@@ -108,11 +109,13 @@ pub struct Level {
     pub monkey: Monkey,
     pub trapped: bool,
     trap: Vec2,
+    score: i32,
 }
 
 impl Level {
     pub fn new() -> Level {
         Level {
+            started: false,
             bounds: Vec2::ZERO,
             tiles: Vec::new(),
             enemies: Vec::new(),
@@ -120,6 +123,7 @@ impl Level {
             player: Player::new(),
             trapped: false,
             trap: Vec2::ZERO,
+            score: 0,
         }
     }
 
@@ -132,6 +136,10 @@ impl Level {
     }
 
     pub fn update(&mut self, elapsed: f32, keys: &HashSet<Keycode>) {
+        if !self.started || self.player.dead {
+            return;
+        }
+
         self.player.update(keys, elapsed, &self.tiles);
 
         self.monkey.udpate(elapsed, self.player.position, &self.tiles);
@@ -150,18 +158,19 @@ impl Level {
         }
 
         // Resolve Collisions
-        if !self.monkey.dead() {
-            let (head_pos, head_rect) = self.monkey.head();
-            if self.player.attack(head_pos, head_rect) {
-                self.monkey.damage(1);
-            } else if physics::collides(
-                self.player.position,
-                self.player.sides,
-                self.monkey.position,
-                self.monkey.sides,
-            ) {
-                self.player.die();
-            }
+        let (head_pos, head_rect) = self.monkey.head();
+        if self.player.attack(head_pos, head_rect) {
+            self.monkey.damage(1);
+        } else if physics::collides(
+            self.player.position,
+            self.player.sides,
+            self.monkey.position,
+            self.monkey.sides,
+        ) {
+            self.player.die();
+        }
+        if self.monkey.dead() {
+            self.score += 500;
         }
 
         for b in &self.monkey.bananas {
@@ -181,6 +190,9 @@ impl Level {
                 e.sides,
             ) {
                 self.player.die();
+            }
+            if e.dead() {
+                self.score += 100;
             }
         }
 

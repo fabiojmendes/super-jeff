@@ -13,6 +13,8 @@ pub struct TextureManager<'a> {
     monkey: Texture<'a>,
     banana: Texture<'a>,
     tiles: Texture<'a>,
+    newgame: Texture<'a>,
+    gameover: Texture<'a>,
     enemies: Vec<Texture<'a>>,
 }
 
@@ -22,6 +24,9 @@ impl<'a> TextureManager<'a> {
         let monkey = texture_creator.load_texture("assets/monkey.png")?;
         let banana = texture_creator.load_texture("assets/banana.png")?;
         let tiles = texture_creator.load_texture("assets/tiles.png")?;
+        let gameover = texture_creator.load_texture("assets/game-over.png")?;
+        let newgame = texture_creator.load_texture("assets/newgame.png")?;
+
         let enemies = vec![
             texture_creator.load_texture("assets/andi.png")?,
             texture_creator.load_texture("assets/leandro.png")?,
@@ -34,7 +39,7 @@ impl<'a> TextureManager<'a> {
             texture_creator.load_texture("assets/ronald.png")?,
         ];
 
-        Ok(TextureManager { jeff, monkey, banana, tiles, enemies })
+        Ok(TextureManager { jeff, monkey, banana, tiles, newgame, gameover, enemies })
     }
 }
 
@@ -122,6 +127,7 @@ pub fn render(
     canvas.set_draw_color(color);
     let rect = level.monkey.sides * camera.scale();
     if level.monkey.dead() {
+        // Render score
         canvas.draw_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
     } else {
         let src = Rect::from(level.monkey.sprite);
@@ -159,6 +165,14 @@ pub fn render(
     // let camera_point = Point::from(camera.to_pixels(camera.center));
     // canvas.set_draw_color(Color::RED);
     // canvas.fill_rect(Rect::from_center(camera_point, 4, 4))?;
+
+    // Overlays
+    if level.player.dead {
+        canvas.copy(&tx_manager.gameover, None, None)?;
+    }
+    if !level.started {
+        canvas.copy(&tx_manager.newgame, None, None)?;
+    }
 
     canvas.present();
 

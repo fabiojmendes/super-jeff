@@ -40,13 +40,11 @@ fn main() -> Result<(), String> {
         .expect("could not build canvas from window, quiting");
 
     let texture_creator = canvas.texture_creator();
-
     let tx_manager = TextureManager::load(&texture_creator)?;
+    let mut camera = Camera::new(canvas.output_size()?);
 
     let mut level = Level::from_file("assets/level.txt") //
         .expect("Error loading level from file");
-
-    let mut camera = Camera::new(canvas.output_size()?);
 
     let mut timer = Instant::now();
     let mut event_pump = sdl_context.event_pump()?;
@@ -59,6 +57,10 @@ fn main() -> Result<(), String> {
                 Event::KeyDown { keycode: Some(Keycode::R), .. } => {
                     level = Level::from_file("assets/level.txt") //
                         .expect("Error loading level from file");
+                    level.started = true;
+                }
+                Event::KeyDown { keycode: Some(Keycode::S), .. } => {
+                    level.started = true;
                 }
                 _ => {}
             }
@@ -78,9 +80,7 @@ fn main() -> Result<(), String> {
             .filter_map(Keycode::from_scancode)
             .collect();
 
-        if !level.player.dead {
-            level.update(elapsed, &keys);
-        }
+        level.update(elapsed, &keys);
 
         if level.trapped {
             let bottom_right = Vec2::new(level.max_bounds().x, level.min_bounds().y);
