@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::fs;
 use std::io;
-use std::time::{Instant, Duration};
+use std::time::{Duration, Instant};
 use std::vec::Vec;
 
 use glam::{const_vec2, Vec2};
@@ -111,7 +111,7 @@ pub struct Level {
     trap: Vec2,
     score: i32,
     timer: Instant,
-    final_time: Duration,
+    final_time: Option<Duration>,
 }
 
 impl Level {
@@ -127,7 +127,7 @@ impl Level {
             trap: Vec2::ZERO,
             score: 0,
             timer: Instant::now(),
-            final_time: Duration::from_secs(0),
+            final_time: None,
         }
     }
 
@@ -172,25 +172,28 @@ impl Level {
         }
 
         // Resolve Collisions
-        let (head_pos, head_rect) = self.monkey.head();
-        if self.player.attack(head_pos, head_rect) {
-            if self.monkey.damage(1) {
-                sounds.push("hit");
-            } else {
-                sounds.push("click");
+        if !self.monkey.dead() {
+            let (head_pos, head_rect) = self.monkey.head();
+            if self.player.attack(head_pos, head_rect) {
+                if self.monkey.damage(1) {
+                    sounds.push("hit");
+                } else {
+                    sounds.push("click");
+                }
+            } else if physics::collides(
+                self.player.position,
+                self.player.sides,
+                self.monkey.position,
+                self.monkey.sides,
+            ) {
+                self.player.die();
+                sounds.push("dead");
             }
-        } else if physics::collides(
-            self.player.position,
-            self.player.sides,
-            self.monkey.position,
-            self.monkey.sides,
-        ) {
-            self.player.die();
-            sounds.push("dead");
-        }
-        if self.monkey.dead() {
-            self.score += 500;
-            // Stop the clock
+            if self.monkey.dead() {
+                self.score += 500;
+                self.final_time = Some(self.timer.elapsed());
+                println!("Score: {}, Time: {:?}", self.score, self.final_time);
+            }
         }
 
         for b in &self.monkey.bananas {
