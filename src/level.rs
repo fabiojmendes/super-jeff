@@ -54,6 +54,10 @@ impl Enemy {
         }
     }
 
+    pub fn hitbox(&self) -> Vec2 {
+        self.sides - Vec2::new(0.5, 0.5)
+    }
+
     pub fn update(&mut self, elapsed: f32, tiles: &Vec<Tile>) {
         let displacement = self.velocity * elapsed;
 
@@ -190,9 +194,9 @@ impl Level {
                 }
             } else if physics::collides(
                 self.player.position,
-                self.player.sides,
+                self.player.hitbox(),
                 self.monkey.position,
-                self.monkey.sides,
+                self.monkey.hitbox(),
             ) {
                 self.player.die();
                 sounds.push("dead");
@@ -205,7 +209,7 @@ impl Level {
         }
 
         for b in &self.monkey.bananas {
-            if physics::collides(self.player.position, self.player.sides, b.position, b.sides) {
+            if physics::collides(self.player.position, self.player.hitbox(), b.position, b.sides) {
                 self.player.die();
                 sounds.push("dead");
             }
@@ -218,9 +222,9 @@ impl Level {
                 sounds.push("hit");
             } else if physics::collides(
                 self.player.position,
-                self.player.sides,
+                self.player.hitbox(),
                 e.position,
-                e.sides,
+                e.hitbox(),
             ) {
                 self.player.die();
                 sounds.push("dead");

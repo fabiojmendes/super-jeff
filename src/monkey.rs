@@ -87,7 +87,7 @@ impl Monkey {
         self.health <= 0
     }
 
-    pub fn damage(&mut self, amount: i32) -> bool{
+    pub fn damage(&mut self, amount: i32) -> bool {
         if self.enranged {
             return false;
         }
@@ -99,6 +99,10 @@ impl Monkey {
             self.rage();
         }
         true
+    }
+
+    pub fn hitbox(&self) -> Vec2 {
+        self.sides - Vec2::new(0.5, 0.5)
     }
 
     pub fn udpate(

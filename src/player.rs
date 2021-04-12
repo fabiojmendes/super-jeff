@@ -96,6 +96,10 @@ impl Player {
         (foot, Vec2::new(self.sides.x, 0.2))
     }
 
+    pub fn hitbox(&self) -> Vec2 {
+        self.sides - Vec2::new(0.25, 0.25)
+    }
+
     pub fn update(
         &mut self,
         keys: &HashSet<Keycode>,

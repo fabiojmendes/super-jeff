@@ -158,8 +158,10 @@ pub fn render(
             } else {
                 canvas.draw_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
             }
-            // // Hit box
-            // canvas.draw_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
+            // Hit box
+            // canvas.set_draw_color(Color::RED);
+            // let hit = e.hitbox() * camera.scale();
+            // canvas.draw_rect(Rect::from_center(p, hit.x as u32, hit.y as u32))?;
 
             // let (head_pos, head_rect) = e.head();
             // let head_point = Point::from(camera.to_pixels(head_pos));
@@ -173,14 +175,16 @@ pub fn render(
     let color = if level.monkey.enranged { Color::RED } else { Color::YELLOW };
     canvas.set_draw_color(color);
     let rect = level.monkey.sides * camera.scale();
-    if level.monkey.dead() {
-        // Render score
-        canvas.draw_rect(Rect::from_center(p, rect.x as u32, rect.y as u32))?;
-    } else {
+    if !level.monkey.dead() {
         let src = Rect::from(level.monkey.sprite);
         let dst = Rect::from_center(p, rect.x as u32, rect.y as u32);
         canvas.copy_ex(&tx_manager.monkey, src, dst, 0.0, None, level.monkey.right(), false)?;
     }
+
+    // Hit box
+    // canvas.set_draw_color(Color::RED);
+    // let hit = level.monkey.hitbox() * camera.scale();
+    // canvas.draw_rect(Rect::from_center(p, hit.x as u32, hit.y as u32))?;
 
     // Monkey Hit Box
     // let (head_pos, head_rect) = level.monkey.head();
@@ -197,11 +201,17 @@ pub fn render(
         canvas.copy(&tx_manager.banana, None, dst)?;
     }
 
+    // Render Player
     let p = Point::from(camera.to_pixels(level.player.position));
     let src = Rect::from(level.player.sprite);
     let rect = level.player.sides() * camera.scale();
     let dst = Rect::from_center(p, rect.x as u32, rect.y as u32);
     canvas.copy_ex(&tx_manager.jeff, src, dst, 0.0, None, level.player.velocity.x < 0.0, false)?;
+
+    // Hitbox
+    // canvas.set_draw_color(Color::RED);
+    // let hit = level.player.hitbox() * camera.scale();
+    // canvas.draw_rect(Rect::from_center(p, hit.x as u32, hit.y as u32))?;
 
     // let (foot_pos, foot_rect) = level.player.foot_rect();
     // let foot_point = Point::from(camera.to_pixels(foot_pos));
