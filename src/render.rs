@@ -15,6 +15,7 @@ pub struct TextureManager<'a> {
     tiles: Texture<'a>,
     newgame: Texture<'a>,
     gameover: Texture<'a>,
+    backgrounds: Vec<Texture<'a>>,
     enemies: Vec<Texture<'a>>,
 }
 
@@ -26,6 +27,11 @@ impl<'a> TextureManager<'a> {
         let tiles = texture_creator.load_texture("assets/tiles.png")?;
         let gameover = texture_creator.load_texture("assets/gameover.png")?;
         let newgame = texture_creator.load_texture("assets/newgame.png")?;
+
+        let backgrounds = vec![
+            texture_creator.load_texture("assets/background1.png")?,
+            texture_creator.load_texture("assets/background2.png")?,
+        ];
 
         let enemies = vec![
             texture_creator.load_texture("assets/andi.png")?,
@@ -39,7 +45,7 @@ impl<'a> TextureManager<'a> {
             texture_creator.load_texture("assets/ronald.png")?,
         ];
 
-        Ok(TextureManager { jeff, monkey, banana, tiles, newgame, gameover, enemies })
+        Ok(TextureManager { jeff, monkey, banana, tiles, newgame, gameover, backgrounds, enemies })
     }
 }
 
@@ -90,6 +96,21 @@ pub fn render(
 ) -> Result<(), String> {
     canvas.set_draw_color(Color::RGB(178, 220, 239));
     canvas.clear();
+
+    // Background
+    for (i, bg) in tx_manager.backgrounds.iter().enumerate() {
+        let (w, h) = camera.screen_size;
+        let offset = if level.trapped {
+            0
+        } else {
+            ((level.player.position.x + level.max_bounds().x) * (5.0 + i as f32 * 5.0)) as i32
+                % w as i32
+        };
+        let dst = Rect::new(w as i32 - offset, -20, w, h);
+        canvas.copy(bg, None, dst)?;
+        let dst = Rect::new(-offset, -20, w, h);
+        canvas.copy(bg, None, dst)?;
+    }
 
     for t in &level.tiles {
         let p = Point::from(camera.to_pixels(t.position));
