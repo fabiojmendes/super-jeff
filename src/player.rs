@@ -96,7 +96,13 @@ impl Player {
         (foot, Vec2::new(self.sides.x, 0.2))
     }
 
-    pub fn update(&mut self, keys: &HashSet<Keycode>, elapsed: f32, tiles: &Vec<Tile>) {
+    pub fn update(
+        &mut self,
+        keys: &HashSet<Keycode>,
+        elapsed: f32,
+        tiles: &Vec<Tile>,
+        sounds: &mut Vec<&str>,
+    ) {
         // Drag
         self.apply_drag(elapsed);
 
@@ -116,6 +122,7 @@ impl Player {
                 Keycode::Space => {
                     if self.grounded() {
                         self.jump();
+                        sounds.push("jump");
                     }
                 }
                 _ => {}

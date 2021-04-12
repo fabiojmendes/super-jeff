@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::fs;
 use std::io;
-use std::time::Instant;
+use std::time::{Instant, Duration};
 use std::vec::Vec;
 
 use glam::{const_vec2, Vec2};
@@ -101,7 +101,7 @@ impl Tile {
 
 #[derive(Debug)]
 pub struct Level {
-    pub started: bool,
+    started: bool,
     bounds: Vec2,
     pub tiles: Vec<Tile>,
     pub enemies: Vec<Enemy>,
@@ -110,6 +110,8 @@ pub struct Level {
     pub trapped: bool,
     trap: Vec2,
     score: i32,
+    timer: Instant,
+    final_time: Duration,
 }
 
 impl Level {
@@ -124,6 +126,8 @@ impl Level {
             trapped: false,
             trap: Vec2::ZERO,
             score: 0,
+            timer: Instant::now(),
+            final_time: Duration::from_secs(0),
         }
     }
 
@@ -135,14 +139,23 @@ impl Level {
         Vec2::new(self.bounds.x / 2.0, self.bounds.y / 2.0)
     }
 
-    pub fn update(&mut self, elapsed: f32, keys: &HashSet<Keycode>) {
+    pub fn started(&self) -> bool {
+        self.started
+    }
+
+    pub fn start(&mut self) {
+        self.started = true;
+        self.timer = Instant::now();
+    }
+
+    pub fn update(&mut self, elapsed: f32, keys: &HashSet<Keycode>, sounds: &mut Vec<&str>) {
         if !self.started || self.player.dead {
             return;
         }
 
-        self.player.update(keys, elapsed, &self.tiles);
+        self.player.update(keys, elapsed, &self.tiles, sounds);
 
-        self.monkey.udpate(elapsed, self.player.position, &self.tiles);
+        self.monkey.udpate(elapsed, self.player.position, &self.tiles, sounds);
 
         if self.player.position.x > self.trap.x {
             self.trapped = true;
@@ -154,6 +167,7 @@ impl Level {
 
         // Player dies by falling out of level bounds
         if self.player.position.y < self.min_bounds().y - self.player.sides.y * 2.0 {
+            sounds.push("fall");
             self.player.die();
         }
 
@@ -161,6 +175,7 @@ impl Level {
         let (head_pos, head_rect) = self.monkey.head();
         if self.player.attack(head_pos, head_rect) {
             self.monkey.damage(1);
+            sounds.push("hit");
         } else if physics::collides(
             self.player.position,
             self.player.sides,
@@ -168,14 +183,17 @@ impl Level {
             self.monkey.sides,
         ) {
             self.player.die();
+            sounds.push("dead");
         }
         if self.monkey.dead() {
             self.score += 500;
+            // Stop the clock
         }
 
         for b in &self.monkey.bananas {
             if physics::collides(self.player.position, self.player.sides, b.position, b.sides) {
                 self.player.die();
+                sounds.push("dead");
             }
         }
 
@@ -183,6 +201,7 @@ impl Level {
             let (head_pos, head_rect) = e.head();
             if self.player.attack(head_pos, head_rect) {
                 e.damage(1);
+                sounds.push("hit");
             } else if physics::collides(
                 self.player.position,
                 self.player.sides,
@@ -190,6 +209,7 @@ impl Level {
                 e.sides,
             ) {
                 self.player.die();
+                sounds.push("dead");
             }
             if e.dead() {
                 self.score += 100;

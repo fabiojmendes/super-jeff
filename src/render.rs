@@ -170,7 +170,7 @@ pub fn render(
     if level.player.dead {
         canvas.copy(&tx_manager.gameover, None, None)?;
     }
-    if !level.started {
+    if !level.started() {
         canvas.copy(&tx_manager.newgame, None, None)?;
     }
 

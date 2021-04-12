@@ -13,6 +13,7 @@ use render::TextureManager;
 use glam::Vec2;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
+use sdl2::mixer::{self, Chunk};
 use std::env;
 use std::time::Instant;
 
@@ -43,6 +44,22 @@ fn main() -> Result<(), String> {
     let tx_manager = TextureManager::load(&texture_creator)?;
     let mut camera = Camera::new(canvas.output_size()?);
 
+    // Audio Subsystem
+    let _audio = sdl_context.audio()?;
+    let frequency = 44_100;
+    let format = mixer::AUDIO_S16LSB; // signed 16 bit samples, in little-endian byte order
+    let channels = mixer::DEFAULT_CHANNELS; // Stereo
+    let chunk_size = 1024;
+    sdl2::mixer::open_audio(frequency, format, channels, chunk_size)?;
+    mixer::allocate_channels(8);
+
+    let jump = Chunk::from_file("assets/jump.wav")?;
+    let hit = Chunk::from_file("assets/hit.wav")?;
+    let dead = Chunk::from_file("assets/dead.wav")?;
+    let fall = Chunk::from_file("assets/fall.wav")?;
+    let banana = Chunk::from_file("assets/banana.wav")?;
+    let rage = Chunk::from_file("assets/rage.wav")?;
+
     let mut level = Level::from_file("assets/level.txt") //
         .expect("Error loading level from file");
 
@@ -57,10 +74,10 @@ fn main() -> Result<(), String> {
                 Event::KeyDown { keycode: Some(Keycode::R), .. } => {
                     level = Level::from_file("assets/level.txt") //
                         .expect("Error loading level from file");
-                    level.started = true;
+                    level.start();
                 }
-                Event::KeyDown { keycode: Some(Keycode::S), .. } => {
-                    level.started = true;
+                Event::KeyUp { keycode: Some(Keycode::Space), .. } => {
+                    level.start();
                 }
                 _ => {}
             }
@@ -73,14 +90,32 @@ fn main() -> Result<(), String> {
             delta.as_millis() as f32 / 1000.0
         };
 
-        // Create a set of pressed Keys.
+        // Create a set of pressed Keys
         let keys = event_pump
             .keyboard_state()
             .pressed_scancodes()
             .filter_map(Keycode::from_scancode)
             .collect();
 
-        level.update(elapsed, &keys);
+        let mut sounds = Vec::<&str>::new();
+        level.update(elapsed, &keys, &mut sounds);
+
+        for s in sounds {
+            let sound = match s {
+                "jump" => Some(&jump),
+                "hit" => Some(&hit),
+                "dead" => Some(&dead),
+                "fall" => Some(&fall),
+                "banana" => Some(&banana),
+                "rage" => Some(&rage),
+                _ => None,
+            };
+            if let Some(s) = sound {
+                if let Err(e) = mixer::Channel::all().play(s, 0) {
+                    println!("Error playing sound: {}", e);
+                }
+            }
+        }
 
         if level.trapped {
             let bottom_right = Vec2::new(level.max_bounds().x, level.min_bounds().y);

@@ -69,12 +69,7 @@ impl Monkey {
         self.bananas_thrown = 0;
     }
 
-    fn throw_banana(&mut self, target: Vec2) {
-        let displacement = target - self.position;
-        self.right = displacement.x < 0.0;
-        if displacement.x.abs() > Monkey::BANANA_MAX_DISTANCE {
-            return;
-        }
+    fn throw_banana(&mut self, displacement: Vec2) {
         // Random y velocity based on current health the distance from the target
         let yvel =
             (rand::random::<f32>() * 4.0 + 2.0 * self.health as f32) + (displacement.x.abs() / 4.0);
@@ -105,7 +100,13 @@ impl Monkey {
         }
     }
 
-    pub fn udpate(&mut self, elapsed: f32, target: Vec2, tiles: &Vec<Tile>) {
+    pub fn udpate(
+        &mut self,
+        elapsed: f32,
+        target: Vec2,
+        tiles: &Vec<Tile>,
+        sounds: &mut Vec<&str>,
+    ) {
         let mut rng = rand::thread_rng();
         if self.dead() {
             // Skip
@@ -126,12 +127,17 @@ impl Monkey {
             }
         } else if self.bananas_thrown >= self.bananas_before_rage {
             self.rage();
+            sounds.push("rage");
             self.bananas_before_rage = rng.gen_range(5..10);
         } else if self.ai_timer.elapsed() > self.next_throw {
             self.ai_timer += self.ai_timer.elapsed();
             self.next_throw = Duration::from_millis(rng.gen_range(1000..2000));
-            self.throw_banana(target);
             self.anim_timer = 0;
+            let displacement = target - self.position;
+            if displacement.x.abs() < Monkey::BANANA_MAX_DISTANCE {
+                self.throw_banana(displacement);
+                sounds.push("banana");
+            }
         }
 
         self.position += self.velocity * elapsed;
