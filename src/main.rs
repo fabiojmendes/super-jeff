@@ -61,6 +61,10 @@ fn main() -> Result<(), String> {
     let banana = Chunk::from_file("assets/banana.wav")?;
     let rage = Chunk::from_file("assets/rage.wav")?;
 
+    let music = mixer::Music::from_file("assets/music.mp3")?;
+    mixer::Music::set_volume(24);
+    music.play(-1)?;
+
     let mut level = Level::from_file("assets/level.txt") //
         .expect("Error loading level from file");
 
