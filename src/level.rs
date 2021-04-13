@@ -108,6 +108,7 @@ pub struct Level {
     started: bool,
     bounds: Vec2,
     pub tiles: Vec<Tile>,
+    pub decor: Vec<Tile>,
     pub enemies: Vec<Enemy>,
     pub player: Player,
     pub monkey: Monkey,
@@ -124,6 +125,7 @@ impl Level {
             started: false,
             bounds: Vec2::ZERO,
             tiles: Vec::new(),
+            decor: Vec::new(),
             enemies: Vec::new(),
             monkey: Monkey::new(),
             player: Player::new(),
@@ -154,7 +156,7 @@ impl Level {
 
     pub fn final_score(&self) -> i32 {
         if let Some(time) = self.final_time {
-            (self.score as f32 * 1000.0 / time.as_secs() as f32).round() as i32
+            (self.score as f32 * 100.0 / time.as_secs() as f32).round() as i32
         } else {
             0
         }
@@ -289,6 +291,14 @@ impl Level {
                     level.tiles.push(Tile {
                         position: world_pos,
                         sides: Vec2::new(Tile::SIDE, Tile::SIDE),
+                        sprite: Tile::BOTTOM,
+                    });
+                }
+                'D' => {
+                    let sides = Vec2::new(1.5, 1.5);
+                    level.decor.push(Tile {
+                        position: Level::offset(world_pos, sides.y),
+                        sides,
                         sprite: Tile::BOTTOM,
                     });
                 }

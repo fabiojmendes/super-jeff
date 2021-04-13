@@ -70,6 +70,7 @@ fn main() -> Result<(), String> {
     let ttf_context = ttf::init().map_err(|e| e.to_string())?;
     // Load a font
     let font = ttf_context.load_font("assets/cocogoose.ttf", 32)?;
+    let font64 = ttf_context.load_font("assets/cocogoose.ttf", 64)?;
 
     let mut level = Level::from_file("assets/level.txt") //
         .expect("Error loading level from file");
@@ -136,7 +137,15 @@ fn main() -> Result<(), String> {
             camera.recenter(level.player.position, level.max_bounds());
         }
 
-        render::render(&mut canvas, &camera, &level, &tx_manager, &font, &texture_creator)?;
+        render::render(
+            &mut canvas,
+            &camera,
+            &level,
+            &tx_manager,
+            &font,
+            &font64,
+            &texture_creator,
+        )?;
     }
 
     Ok(())

@@ -120,7 +120,7 @@ impl Monkey {
         {
             self.velocity = self.rage_velocity;
             for t in tiles {
-                let displacement = self.velocity.signum() * Vec2::X;
+                let displacement = self.velocity.signum() * Vec2::X / 2.0;
                 if physics::collides(self.position + displacement, self.sides, t.position, t.sides)
                 {
                     self.ai_timer += self.ai_timer.elapsed();
