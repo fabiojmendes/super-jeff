@@ -54,6 +54,7 @@ impl<'a> TextureManager<'a> {
             texture_creator.load_texture("assets/gold.png")?,
             texture_creator.load_texture("assets/lopes.png")?,
             texture_creator.load_texture("assets/ronald.png")?,
+            texture_creator.load_texture("assets/ancid.png")?,
         ];
 
         Ok(TextureManager {
@@ -209,6 +210,19 @@ pub fn render(
         let src = Rect::from(level.monkey.sprite);
         let dst = Rect::from_center(p, rect.x as u32, rect.y as u32);
         canvas.copy_ex(&tx_manager.monkey, src, dst, 0.0, None, level.monkey.right(), false)?;
+
+        if level.monkey.enranged {
+            let surface = font32.render("RAGE!").blended(Color::RED).map_err(|e| e.to_string())?;
+            let texture =
+                texture_creator.create_texture_from_surface(&surface).map_err(|e| e.to_string())?;
+            let overhead =
+                Point::from(camera.to_pixels(
+                    level.monkey.position + Vec2::Y * (level.monkey.sides.y / 2.0 + 0.5),
+                ));
+            let TextureQuery { width, height, .. } = texture.query();
+            let dst = Rect::from_center(overhead, width, height);
+            canvas.copy(&texture, None, dst)?;
+        }
     }
 
     // Hit box
