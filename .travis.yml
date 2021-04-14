@@ -1,26 +1,26 @@
 language: rust
 
 os:
-  - linux
-  - windows
+- linux
+- windows
 
 rust:
-  - stable
-  - beta
-  - nightly
+- stable
+- beta
+- nightly
 
 jobs:
   allow_failures:
-    - rust: nightly
+  - rust: nightly
   fast_finish: true
 
 before_install:
-  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then export LIB="./lib"; fi
+- if [ "$TRAVIS_OS_NAME" = "windows" ]; then export LIB="./lib"; fi
 
 script:
-  - cargo build --verbose
-  - cargo test --verbose
-  - cargo build --release
+- cargo build --verbose
+- cargo test --verbose
+- cargo build --release
 
 addons:
   apt:
@@ -30,4 +30,15 @@ addons:
     - libsdl2-mixer-dev
     - libsdl2-ttf-dev
 
-cache: cargo
+before_deploy:
+- zip super-jeff.zip assets
+- zip super-jeff.zip -j ./target/release/super-jeff.exe
+- if [ "$TRAVIS_OS_NAME" = "windows" ]; then zip super-jeff.zip -j lib/*.dll; fi
+
+deploy:
+  provider: releases
+  file: super-jeff.zip
+  skip_cleanup: true
+  draft: true
+  api_key:
+    secure: RGtlzMa3PnF6DjcEOXALIh4YB4i8TngZX2oz5nqoImfCXAvKWNiZ2h0itDC3/xJV6eQktPME4QC1VugSeHHld/D/sEPvs4ak5IUW86sxNYVp+T5uoQmdvTAA3MFEck0xYIfEu+c4jGoTzO3QleKw+iRmy3VAgqNmVToUSlaTEQY6wDWK325W9t06/W/zRc/HqGFMhgUB6+co1scB1cSyl7ymKYcC2qrxkwBD/o2mcXdp39FFcPoBS0YKpJNBEXJFHmDLyvoYbcoZUmG5yIJoyXAnKBUQAeoN0vEVgeuxeCEQIVLCWmPX5rQEMzle3EZ0QmV2gOw6F/RE/gvGF046AMByvxwX+B9399GtkIvTOyQ7DJDoc0iqtp0ZkXPqXRHV7KOqgcIwNms2jIJqcgWIe/eXzuMlyGQOvS5srILGH2bgS3GSP5i97Nl2DHN6zZpLv70fbmqoRqqoyJ1sVCOQLttBKn/ge5FMZFJP2enaipyRfYnvQPrlrFIPE4QtSudeXskAMW/0OEUwAGPAKCMcYuo+Qm54rlUmu7M+79C/VzdDEf8uPQ5RA/udKrxBhZXK3LP3hTqqja8xTM1Y8MsavFNpBFvANWbEHsH2QGsFKB8kKtdIwhIaxkSylOSQHGA3fWmkma46XEL3fhSEOcnfwdxo+ArquR9yBDseyGabSyw=
