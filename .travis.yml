@@ -1,26 +1,19 @@
 language: rust
-
 os:
 - linux
 - windows
-
 rust:
 - stable
-
 jobs:
   allow_failures:
   - rust: nightly
   fast_finish: true
-
 before_install:
 - if [ "$TRAVIS_OS_NAME" = "windows" ]; then export LIB="./lib"; fi
-
 install:
 - cargo build --release
-
 script:
 - cargo test --release
-
 addons:
   apt:
     packages:
@@ -28,16 +21,23 @@ addons:
     - libsdl2-image-dev
     - libsdl2-mixer-dev
     - libsdl2-ttf-dev
-
 before_deploy:
-- ruby -S gem install octokit
-- env
-
+- |-
+  if [ "$TRAVIS_OS_NAME" = "windows" ]; then
+    mkdir super-jeff
+    cp target/release/super-jeff.exe ./super-jeff
+    cp -r assets ./super-jeff
+    cp lib/*.{dll,txt} ./super-jeff
+    ls -l super-jeff
+    tar -cavf super-jeff.zip super-jeff
+  fi
+  if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+    zip -j super-jeff.zip target/release/super-jeff
+    zip -r super-jeff.zip assets
+  fi
 deploy:
-  provider: script
-  script: ruby deploy.rb
-  skip_cleanup: true
-
-env:
-  global:
-    secure: gptKCIZF3kQa+817F/0dMJLFCzDzSuXFYzBVBh5Zqdg6KuPIMVexFHVzHtCLEkcKzcGgPHqBWpJjAIjoh0E5p8fpI2tTccsbG+IzdbDE7fNxJzkrY/rRYCtCHleeHMpwCZOCvlo+M0RzY0Myioc0hzFgPncrzp1CMY3YzQnSpzBylDlJOzEG4yJgV8DBpwq59YU1RQkZGd0JfSgFZBXauSFYuBypO8uvOn0lO+TypGT4jEei0eEvTVpBGIAxvNItXAyP81OAkKM+dQBo3uK8wryJo5ggH6ZqQIGgPpTaXYnBheS7Q4koEHBoCzmwkwaaJQAql92Gw4vbaIpdezNgCMCnu5gGUxhuB58a4Yn3LnxvprHbfVAV6kVMtXPsczOj8Lb7MjD97kkJKONWaznJ4tjnY+AeogUjSJLVE641cx3/uJBqTNcc8Df9ybfA8kuR45RVEx9ZL940QfZjUbyQJLasOSx8WSSzyemttEre1GtjpVZtSwnQ0RFT3r6ZDr90YWxiu/orYIginmU0NkBejaVMngRtvXKY2a5mbqXzbmxkGfvfXt333ebpu/hq0ybA1QFeYbVGkrsGvWQoiSuHsV+nNfF5H3S3lV3rjl+jFGhz1NXLffVpWpjeXreIe0/8PXEID69ZfEehn3HgkE1JhhGmsImJgyi3rMIHurCF9kE=
+  provider: releases
+  file_glob: true
+  file: super-jeff.*
+  api_key:
+    secure: QyZ2EXVWtHbeH1emdaA2nz1gGXSLQKqHeqM58vMQQKuY6A4icW2C4VeeQSmfDEpT1bUJcldcgwt5CieJhj5jCBpXhjIFS+9lT+ZQ/SlvM6ygaoLYbHe9n/MK1zAlkvfjk1RHsh7vp2fWcYhTYR3VxtC+OQq5wqqPg77Sp9hisPRJ1sa8IPYAH6NG9tY9SjaK+BS8rxDZEHyKzg/ztc4l8P7ve+aTSVSw32Ee3Q7rdfVZBmporJ5WyI1KoFaCBtxm/mRck7kgBUy8StvuNlIplbQWyLr+B0z+jN4P1nANZNMYJTzRv6p5cyB2w8xBU79qvqfV8JmRieozYpuOSPqq/QirPVQXTawKioFsWv/WLONOuVRYysVwXwuhDd4ufz/YXHyiIiKjY/abiAmcyB3COqbA8ZI8PBcSOlchg337tM9w6ZEFEiTLLwjNnfmJSZ5c01VRW8gS2ju/4hQ8GJ+SGjObI22NxfmGBUqiBuxjfoKynhNy31saswBZ9DPtgZmjSv7Kcr9lrXjcyvhDoXFl5P1l37/lXXB0ED3sXhG2SoCgSaFqDThg3eqJQZK5N7LDujPXKJwvY6p6zgCtlAdJWESSn+eaoYg3OHypD5p3Sae+Qb+4uQKpHWXYf5p18o1+9ukbe9HO+xm5oleluA39/7thVbyGqX5QnMot4TgZfc4=
