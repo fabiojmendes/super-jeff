@@ -8,7 +8,7 @@ mod render;
 
 use level::Level;
 use render::Camera;
-use render::{TextManager, TextureManager};
+use render::{TextRenderer, TextureManager};
 
 use glam::Vec2;
 use sdl2::event::Event;
@@ -50,7 +50,7 @@ fn main() -> Result<(), String> {
     let font32 = ttf_context.load_font("assets/cocogoose.ttf", 32)?;
     let font64 = ttf_context.load_font("assets/cocogoose.ttf", 64)?;
 
-    let text_manager = TextManager { texture_creator: &texture_creator, font32, font64 };
+    let text_renderer = TextRenderer { texture_creator: &texture_creator, font32, font64 };
     let mut camera = Camera::new(canvas.output_size()?);
 
     // Audio Subsystem
@@ -139,7 +139,7 @@ fn main() -> Result<(), String> {
             camera.recenter(level.player.position, level.max_bounds());
         }
 
-        render::render(&mut canvas, &camera, &level, &tx_manager, &text_manager)?;
+        render::render(&mut canvas, &camera, &level, &tx_manager, &text_renderer)?;
     }
 
     Ok(())

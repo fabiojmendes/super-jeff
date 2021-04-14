@@ -74,13 +74,13 @@ impl<'a> TextureManager<'a> {
     }
 }
 
-pub struct TextManager<'a, 'r> {
+pub struct TextRenderer<'a, 'r> {
     pub font32: Font<'a, 'r>,
     pub font64: Font<'a, 'r>,
     pub texture_creator: &'a TextureCreator<WindowContext>,
 }
 
-impl<'a, 'r> TextManager<'a, 'r> {
+impl<'a, 'r> TextRenderer<'a, 'r> {
     fn render_text(&self, text: &str, font: &Font, color: Color) -> Result<Texture, String> {
         let surface = font.render(text).blended(color).map_err(|e| e.to_string())?;
 
@@ -140,7 +140,7 @@ pub fn render(
     camera: &Camera,
     level: &Level,
     tx_manager: &TextureManager,
-    text_manager: &TextManager,
+    text_renderer: &TextRenderer,
 ) -> Result<(), String> {
     canvas.set_draw_color(Color::RGB(178, 220, 239));
     canvas.clear();
@@ -164,12 +164,12 @@ pub fn render(
         let color = Color::RGB(55, 60, 66);
         let secs = level.timer.elapsed().as_secs();
         let texture =
-            text_manager.render_text32(&format!("Time: {}:{:02}", secs / 60, secs % 60), color)?;
+            text_renderer.render_text32(&format!("Time: {}:{:02}", secs / 60, secs % 60), color)?;
         let TextureQuery { width, height, .. } = texture.query();
         let dst = Rect::new((camera.screen_size.0 - width - 10) as i32, 10, width, height);
         canvas.copy(&texture, None, dst)?;
 
-        let texture = text_manager.render_text32(&format!("Score: {}", level.score), color)?;
+        let texture = text_renderer.render_text32(&format!("Score: {}", level.score), color)?;
         let TextureQuery { width, height, .. } = texture.query();
         let dst = Rect::new(10, 10, width, height);
         canvas.copy(&texture, None, dst)?;
@@ -227,7 +227,7 @@ pub fn render(
         canvas.copy_ex(&tx_manager.monkey, src, dst, 0.0, None, level.monkey.right(), false)?;
 
         if level.monkey.enranged {
-            let texture = text_manager.render_text32("RAGE!", Color::RED)?;
+            let texture = text_renderer.render_text32("RAGE!", Color::RED)?;
             let overhead =
                 Point::from(camera.to_pixels(
                     level.monkey.position + Vec2::Y * (level.monkey.sides.y / 2.0 + 0.5),
@@ -287,18 +287,18 @@ pub fn render(
         canvas.copy(&tx_manager.newgame, None, None)?;
     } else if let Some(time) = level.final_time {
         canvas.copy(&tx_manager.endgame, None, None)?;
-        let line_break = text_manager.font64.recommended_line_spacing();
+        let line_break = text_renderer.font64.recommended_line_spacing();
         let (w, h) = camera.screen_size;
         let mut center = Point::new(w as i32 / 2, h as i32 / 4);
 
         let texture =
-            text_manager.render_text64(&format!("Score: {}", level.score), Color::WHITE)?;
+            text_renderer.render_text64(&format!("Score: {}", level.score), Color::WHITE)?;
         let TextureQuery { width, height, .. } = texture.query();
         center.y += line_break;
         let dst = Rect::from_center(center, width, height);
         canvas.copy(&texture, None, dst)?;
 
-        let texture = text_manager.render_text64(
+        let texture = text_renderer.render_text64(
             &format!("Time: {}:{:02}", time.as_secs() / 60, time.as_secs() % 60),
             Color::WHITE,
         )?;
@@ -307,8 +307,8 @@ pub fn render(
         let dst = Rect::from_center(center, width, height);
         canvas.copy(&texture, None, dst)?;
 
-        let texture =
-            text_manager.render_text64(&format!("Total: {}", level.final_score()), Color::WHITE)?;
+        let texture = text_renderer
+            .render_text64(&format!("Total: {}", level.final_score()), Color::WHITE)?;
         let TextureQuery { width, height, .. } = texture.query();
         center.y += line_break;
         let dst = Rect::from_center(center, width, height);
