@@ -10,4 +10,16 @@ jobs:
     - rust: nightly
   fast_finish: true
 
+# before_install:
+#   - sudo apt-get update
+#   - sudo apt-get -y install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
+
+addons:
+  apt:
+    packages:
+    - libsdl2-dev
+    - libsdl2-image-dev
+    - libsdl2-mixer-dev
+    - libsdl2-ttf-dev
+
 cache: cargo
