@@ -6,8 +6,6 @@ os:
 
 rust:
 - stable
-- beta
-- nightly
 
 jobs:
   allow_failures:
@@ -30,10 +28,22 @@ addons:
     - libsdl2-mixer-dev
     - libsdl2-ttf-dev
 
+
 before_deploy:
-- zip super-jeff.zip assets
-- zip super-jeff.zip -j ./target/release/super-jeff.exe
-- if [ "$TRAVIS_OS_NAME" = "windows" ]; then zip super-jeff.zip -j lib/*.dll; fi
+- |-
+  if [ "$TRAVIS_OS_NAME" = "windows" ]; then
+    mkdir super-jeff
+    cp target/release/super-jeff.exe ./super-jeff
+    cp -r assets ./super-jeff
+    cp lib/*.{dll,txt} ./super-jeff
+    tar -caf super-jeff.zip super-jeff
+  fi
+  if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+    mkdir super-jeff
+    cp target/release/super-jeff ./super-jeff
+    cp -r assets ./super-jeff
+    zip -r super-jeff.zip super-jeff
+  fi
 
 deploy:
   provider: releases
