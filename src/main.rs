@@ -8,7 +8,7 @@ mod render;
 
 use level::Level;
 use render::Camera;
-use render::TextureManager;
+use render::{TextManager, TextureManager};
 
 use glam::Vec2;
 use sdl2::event::Event;
@@ -43,6 +43,14 @@ fn main() -> Result<(), String> {
 
     let texture_creator = canvas.texture_creator();
     let tx_manager = TextureManager::load(&texture_creator)?;
+
+    // Font Subsystem
+    let ttf_context = ttf::init().map_err(|e| e.to_string())?;
+    // Load a font
+    let font32 = ttf_context.load_font("assets/cocogoose.ttf", 32)?;
+    let font64 = ttf_context.load_font("assets/cocogoose.ttf", 64)?;
+
+    let text_manager = TextManager { texture_creator: &texture_creator, font32, font64 };
     let mut camera = Camera::new(canvas.output_size()?);
 
     // Audio Subsystem
@@ -65,12 +73,6 @@ fn main() -> Result<(), String> {
     let music = mixer::Music::from_file("assets/music.mp3")?;
     mixer::Music::set_volume(24);
     music.play(-1)?;
-
-    // Font Subsystem
-    let ttf_context = ttf::init().map_err(|e| e.to_string())?;
-    // Load a font
-    let font = ttf_context.load_font("assets/cocogoose.ttf", 32)?;
-    let font64 = ttf_context.load_font("assets/cocogoose.ttf", 64)?;
 
     let mut level = Level::from_file("assets/level.txt") //
         .expect("Error loading level from file");
@@ -137,15 +139,7 @@ fn main() -> Result<(), String> {
             camera.recenter(level.player.position, level.max_bounds());
         }
 
-        render::render(
-            &mut canvas,
-            &camera,
-            &level,
-            &tx_manager,
-            &font,
-            &font64,
-            &texture_creator,
-        )?;
+        render::render(&mut canvas, &camera, &level, &tx_manager, &text_manager)?;
     }
 
     Ok(())
