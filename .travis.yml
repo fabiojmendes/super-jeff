@@ -1,19 +1,26 @@
 language: rust
+
 os:
 - linux
 - windows
+
 rust:
 - stable
+
 jobs:
   allow_failures:
   - rust: nightly
   fast_finish: true
+
 before_install:
 - if [ "$TRAVIS_OS_NAME" = "windows" ]; then export LIB="./lib"; fi
+
 install:
 - cargo build --release
+
 script:
 - cargo test --release
+
 addons:
   apt:
     packages:
@@ -21,9 +28,15 @@ addons:
     - libsdl2-image-dev
     - libsdl2-mixer-dev
     - libsdl2-ttf-dev
+
+before_deploy:
+  - ruby -S gem install octokit
+
 deploy:
   provider: script
   script: ruby deploy.rb
+  skip_cleanup: true
+
 env:
   global:
     secure: gptKCIZF3kQa+817F/0dMJLFCzDzSuXFYzBVBh5Zqdg6KuPIMVexFHVzHtCLEkcKzcGgPHqBWpJjAIjoh0E5p8fpI2tTccsbG+IzdbDE7fNxJzkrY/rRYCtCHleeHMpwCZOCvlo+M0RzY0Myioc0hzFgPncrzp1CMY3YzQnSpzBylDlJOzEG4yJgV8DBpwq59YU1RQkZGd0JfSgFZBXauSFYuBypO8uvOn0lO+TypGT4jEei0eEvTVpBGIAxvNItXAyP81OAkKM+dQBo3uK8wryJo5ggH6ZqQIGgPpTaXYnBheS7Q4koEHBoCzmwkwaaJQAql92Gw4vbaIpdezNgCMCnu5gGUxhuB58a4Yn3LnxvprHbfVAV6kVMtXPsczOj8Lb7MjD97kkJKONWaznJ4tjnY+AeogUjSJLVE641cx3/uJBqTNcc8Df9ybfA8kuR45RVEx9ZL940QfZjUbyQJLasOSx8WSSzyemttEre1GtjpVZtSwnQ0RFT3r6ZDr90YWxiu/orYIginmU0NkBejaVMngRtvXKY2a5mbqXzbmxkGfvfXt333ebpu/hq0ybA1QFeYbVGkrsGvWQoiSuHsV+nNfF5H3S3lV3rjl+jFGhz1NXLffVpWpjeXreIe0/8PXEID69ZfEehn3HgkE1JhhGmsImJgyi3rMIHurCF9kE=
