@@ -31,10 +31,11 @@ addons:
 
 before_deploy:
 - ruby -S gem install octokit
+- env
 
 deploy:
   provider: script
-  script: rvm use $TRAVIS_RUBY_VERSION do deploy.rb
+  script: ruby deploy.rb
   skip_cleanup: true
 
 env:
