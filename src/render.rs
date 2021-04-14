@@ -46,10 +46,12 @@ impl<'a> TextureManager<'a> {
         let enemies = vec![
             texture_creator.load_texture("assets/andi.png")?,
             texture_creator.load_texture("assets/leandro.png")?,
+            texture_creator.load_texture("assets/yohas.png")?,
             texture_creator.load_texture("assets/paulo.png")?,
             texture_creator.load_texture("assets/vereador.png")?,
             texture_creator.load_texture("assets/newton.png")?,
             texture_creator.load_texture("assets/be-pimp.png")?,
+            texture_creator.load_texture("assets/pedro.png")?,
             texture_creator.load_texture("assets/gui.png")?,
             texture_creator.load_texture("assets/gold.png")?,
             texture_creator.load_texture("assets/lopes.png")?,

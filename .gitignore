@@ -1,5 +1,3 @@
 /target
 /env.ps1
-/SDL2.dll
 /.vscode
-/assets/*.png
