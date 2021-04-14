@@ -1,19 +1,26 @@
 language: rust
+
 os:
 - linux
 - windows
+
 rust:
 - stable
+
 jobs:
   allow_failures:
   - rust: nightly
   fast_finish: true
-before_install:
+
+  before_install:
 - if [ "$TRAVIS_OS_NAME" = "windows" ]; then export LIB="./lib"; fi
+
 install:
 - cargo build --release
+
 script:
 - cargo test --release
+
 addons:
   apt:
     packages:
@@ -21,24 +28,7 @@ addons:
     - libsdl2-image-dev
     - libsdl2-mixer-dev
     - libsdl2-ttf-dev
-before_deploy:
-- |-
-  if [ "$TRAVIS_OS_NAME" = "windows" ]; then
-    mkdir super-jeff
-    cp target/release/super-jeff.exe ./super-jeff
-    cp -r assets ./super-jeff
-    cp lib/*.{dll,txt} ./super-jeff
-    ls -l super-jeff
-    tar -cavf super-jeff.zip super-jeff
-  fi
-  if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-    zip -j super-jeff.zip target/release/super-jeff
-    zip -r super-jeff.zip assets
-  fi
+
 deploy:
-  provider: releases
-  file_glob: true
-  file: super-jeff.*
-  username: fabiojmendes
-  password:
-    secure: D/ahjyv0UxDvojmwB6MF7Giekc3xgkv2eYLARPWdDi/D0tU2LAz5U36KzFjn60fkWrvGjTYGP9O7tqJrGHIVitrcT1mKAjlc6qHcLdkZ6x1xBqxFcOi5pll/XKvr9ds5DDvpRxndXl41rMlplMtiWsP7g7++PGWLaqhvWJaNgouNB/aMjNahnyrc0Ziz4256Vfln1xpuVakLlD/aR4Ey1KDosjSrncVVzJYxwde2iunG5IXZMJxq/7CCGrEbn2UDBeqb7APHq1BepoPRQrq0G4RnHr2kc4hG/opEA3W8Tvw8SjpsZZ/uhtGklfAvSqpLLDH376XZpYYEFz/+Il4Qc3AXYXAM2YFmsMsNGyNqFxbaVBWUcdk/UUbEnMpVq95iSNcWoGziO6Jg5ip/RdRWYzHBK7r/zFlAUVl17VinECXliFrfdGeoyB06Lk0Un592/RmiLZ5fWmi+UkMWt5BalpAiloAJ03BfUukVfibeYmAt3L6RcaJ255nx/67fwB85nX3xH2Q1qL97+c2UYuITFyQ+vyn+0rkc5aQjpzT9Sh9bLCYjGtcEXA7o+kZat6TxuLiYBq820y73AfSaIf004CWClR4DA892HKzC7Em7NOlpcClb+OdB2K0N/B/eb2tBZRY1f/W5kv0vhOV2BnUA+FBr2oLRWjkXW4TLzDXKFHQ=
+  provider: script
+  script: ruby deploy.rb
