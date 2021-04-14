@@ -30,11 +30,11 @@ addons:
     - libsdl2-ttf-dev
 
 before_deploy:
-  - ruby -S gem install octokit
+- ruby -S gem install octokit
 
 deploy:
   provider: script
-  script: ruby deploy.rb
+  script: rvm use $TRAVIS_RUBY_VERSION do deploy.rb
   skip_cleanup: true
 
 env:
