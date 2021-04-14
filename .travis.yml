@@ -1,5 +1,9 @@
 language: rust
 
+os:
+  - linux
+  - windows
+
 rust:
   - stable
   - beta
@@ -10,7 +14,9 @@ jobs:
     - rust: nightly
   fast_finish: true
 
-# before_install:
+before_install:
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then export LIB="./lib"; fi
+
 #   - sudo apt-get update
 #   - sudo apt-get -y install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
 
