@@ -17,8 +17,10 @@ jobs:
 before_install:
   - if [ "$TRAVIS_OS_NAME" = "windows" ]; then export LIB="./lib"; fi
 
-#   - sudo apt-get update
-#   - sudo apt-get -y install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
+script:
+  - cargo build --verbose
+  - cargo test --verbose
+  - cargo build --release
 
 addons:
   apt:
