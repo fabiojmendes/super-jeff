@@ -35,6 +35,7 @@ addons:
     - sdl2_image
     - sdl2_mixer
     - sdl2_ttf
+    update: true
 
 before_deploy:
 - bash package.sh
