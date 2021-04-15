@@ -35,7 +35,9 @@ before_deploy:
 deploy:
   provider: releases
   file_glob: true
-  file: $TRAVIS_BUILD_DIR/super-jeff-*.{tar.gz,zip}
+  file:
+  - $TRAVIS_BUILD_DIR/super-jeff-*.zip
+  - $TRAVIS_BUILD_DIR/super-jeff-*.tar.gz
   skip_cleanup: true
   on:
     tags: true
