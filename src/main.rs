@@ -70,7 +70,7 @@ fn main() -> Result<(), String> {
     let banana = Chunk::from_file("assets/banana.wav")?;
     let rage = Chunk::from_file("assets/rage.wav")?;
 
-    let music = mixer::Music::from_file("assets/music.mp3")?;
+    let music = mixer::Music::from_file("assets/music.ogg")?;
     mixer::Music::set_volume(24);
     music.play(-1)?;
 
