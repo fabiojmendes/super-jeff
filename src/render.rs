@@ -266,6 +266,7 @@ pub fn render(
     canvas.copy_ex(&tx_manager.jeff, src, dst, 0.0, None, level.player.velocity.x < 0.0, false)?;
 
     // Hitbox
+    // let p = Point::from(camera.to_pixels(level.player.hitbox_position()));
     // canvas.set_draw_color(Color::RED);
     // let hit = level.player.hitbox() * camera.scale();
     // canvas.draw_rect(Rect::from_center(p, hit.x as u32, hit.y as u32))?;

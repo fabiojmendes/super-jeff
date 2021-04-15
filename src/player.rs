@@ -45,11 +45,7 @@ impl Player {
     }
 
     pub fn sides(&self) -> Vec2 {
-        if self.crouched {
-            self.sides * Vec2::new(1.0, 0.5)
-        } else {
-            self.sides
-        }
+        self.sides
     }
 
     pub fn attack(&mut self, position: Vec2, sides: Vec2) -> bool {
@@ -98,7 +94,19 @@ impl Player {
     }
 
     pub fn hitbox(&self) -> Vec2 {
-        self.sides - Vec2::new(0.25, 0.25)
+        if self.crouched {
+            self.sides - Vec2::new(0.25, 0.5)
+        } else {
+            self.sides - Vec2::new(0.25, 0.25)
+        }
+    }
+
+    pub fn hitbox_position(&self) -> Vec2 {
+        if self.crouched {
+            self.position - Vec2::new(0.0, 0.25)
+        } else {
+            self.position
+        }
     }
 
     pub fn update(
@@ -111,18 +119,19 @@ impl Player {
         // Drag
         self.apply_drag(elapsed);
 
-        self.crouched = false;
+        self.crouched = keys.contains(&Keycode::Down);
         // Input
         for key in keys {
             match key {
                 Keycode::Left => {
-                    self.accelerate(Vec2::new(-self.speed(), 0.0), elapsed);
+                    if !self.crouched {
+                        self.accelerate(Vec2::new(-self.speed(), 0.0), elapsed);
+                    }
                 }
                 Keycode::Right => {
-                    self.accelerate(Vec2::new(self.speed(), 0.0), elapsed);
-                }
-                Keycode::Down => {
-                    self.crouched = true;
+                    if !self.crouched {
+                        self.accelerate(Vec2::new(self.speed(), 0.0), elapsed);
+                    }
                 }
                 Keycode::Space => {
                     if self.grounded() {
@@ -181,7 +190,9 @@ impl Player {
         self.position += displacement;
 
         let col: i32 = (self.timer.elapsed().as_millis() as i32 / 160 % 4) * 128;
-        if !self.grounded() {
+        if self.crouched {
+            self.sprite = (128, 512, 128, 256);
+        } else if !self.grounded() {
             self.sprite = (0, 512, 128, 256);
         } else if self.velocity.x.abs() > 0.0 {
             self.sprite = (col, 256, 128, 256);
@@ -189,22 +200,4 @@ impl Player {
             self.sprite = (col, 0, 128, 256);
         }
     }
-
-    // fn state(&self) -> PlayerState {
-    //     use PlayerState::*;
-    //     match self.velocity {
-    //         v if v.y.abs() > 0.1 => Jumping,
-    //         v if v.x > 0.1 => WalkingRight,
-    //         v if v.x < -0.1 => WalkingLeft,
-    //         _ => Standing,
-    //     }
-    // }
 }
-
-// #[derive(Debug)]
-// enum PlayerState {
-//     WalkingLeft,
-//     WalkingRight,
-//     Jumping,
-//     Standing,
-// }

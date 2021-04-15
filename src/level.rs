@@ -196,7 +196,7 @@ impl Level {
                     sounds.push(SoundEffect::Click);
                 }
             } else if physics::collides(
-                self.player.position,
+                self.player.hitbox_position(),
                 self.player.hitbox(),
                 self.monkey.position,
                 self.monkey.hitbox(),
@@ -212,7 +212,12 @@ impl Level {
         }
 
         for b in &self.monkey.bananas {
-            if physics::collides(self.player.position, self.player.hitbox(), b.position, b.sides) {
+            if physics::collides(
+                self.player.hitbox_position(),
+                self.player.hitbox(),
+                b.position,
+                b.sides,
+            ) {
                 self.player.die();
                 sounds.push(SoundEffect::Dead);
             }
@@ -224,7 +229,7 @@ impl Level {
                 e.damage(1);
                 sounds.push(SoundEffect::Hit);
             } else if physics::collides(
-                self.player.position,
+                self.player.hitbox_position(),
                 self.player.hitbox(),
                 e.position,
                 e.hitbox(),
