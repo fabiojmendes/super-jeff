@@ -6,6 +6,7 @@ rust:
 os:
 - linux
 - windows
+- osx
 
 jobs:
   allow_failures:
@@ -28,6 +29,11 @@ addons:
     - libsdl2-image-dev
     - libsdl2-mixer-dev
     - libsdl2-ttf-dev
+  homebrew:
+    - sdl2
+    - sdl2_image
+    - sdl2_mixer
+    - sdl2_ttf
 
 before_deploy:
 - bash package.sh

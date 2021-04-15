@@ -11,14 +11,11 @@ if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
   cp lib/*.{dll,txt} ./super-jeff
   ls -l super-jeff
   tar -cavf $ARTIFACT super-jeff
-elif [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+else
   tar -C target/release -cvf $FILE_NAME.tar super-jeff
   tar -rvf $FILE_NAME.tar assets
   gzip -f $FILE_NAME.tar
   ARTIFACT="$FILE_NAME.tar.gz"
-else
-  echo "OS not identified"
-  exit 1
 fi
 
 echo "$ARTIFACT generated"
