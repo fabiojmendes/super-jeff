@@ -8,18 +8,18 @@
 
 ## Building & Running Instructions
 
-You need an up-to-date version of the rust toolchain installed. Follow the instructions on https://rustup.rs/
+You need an up-to-date version of the rust toolchain installed. Follow the instructions at https://rustup.rs/
 
 ### Dependencies
 SDL2, SDL2 Image, SDL2 TTF and SDL2 Mixer development libraries are required for building the game.
 
 ### Windows
 
-For Windows all the necessary libraries and DLLs are bundled with the project. You can use the provided `env.ps1` to set the appropriate environment variables.
+On Windows all necessary libraries and DLLs are bundled with the project. You can use the provided `env.ps1` to set the appropriate environment variables.
 
 ### *nix
 
-For unix based OS you have to install the dependencies using your favorite package manager. Here are a few examples:
+On unix based OS you have to install the dependencies using your favorite package manager. Here are a few examples:
 
 - Debian
 
@@ -34,8 +34,9 @@ For unix based OS you have to install the dependencies using your favorite packa
 
 # Acknowledgements
 - [Sunjay](https://github.com/sunjay/) for his awesome tutorials on gamedev in Rust.
-- [PolyMars](https://github.com/PolyMarsDev) has a pretty good [video](https://www.youtube.com/watch?v=EAMHQfCGymg) on the development of [Cursor-Custodian](https://github.com/PolyMarsDev/Cursor-Custodian) it is c++ but I used as inspiration
+- [PolyMars](https://github.com/PolyMarsDev) has a pretty good [video](https://www.youtube.com/watch?v=EAMHQfCGymg) on the development of [Cursor-Custodian](https://github.com/PolyMarsDev/Cursor-Custodian). It is c++ but I used as inspiration
 - The [examples](https://github.com/Rust-SDL2/rust-sdl2/tree/master/examples) from rust-sdl2 were very helpful
+- This [series of tutorials](https://gamedevelopment.tutsplus.com/tutorials/basic-2d-platformer-physics-part-1--cms-25799) on 2D game physics
 - The art (if you can call it that) was made using [Krita](https://krita.org)
 - Sounds using [sfxr](https://www.drpetter.se/project_sfxr.html) and [Audacity](https://www.audacityteam.org/)
 - My Friends for letting me use their headshots like this lol
