@@ -13,15 +13,6 @@ jobs:
   - rust: nightly
   fast_finish: true
 
-before_install:
-- if [ "$TRAVIS_OS_NAME" = "windows" ]; then export LIB="./lib"; fi
-
-install:
-- cargo build --release
-
-script:
-- cargo test --release
-
 addons:
   apt:
     packages:
@@ -29,13 +20,16 @@ addons:
     - libsdl2-image-dev
     - libsdl2-mixer-dev
     - libsdl2-ttf-dev
-  homebrew:
-    packages:
-    - sdl2
-    - sdl2_image
-    - sdl2_mixer
-    - sdl2_ttf
-    update: true
+
+before_install:
+- if [ "$TRAVIS_OS_NAME" = "windows" ]; then export LIB="./lib"; fi
+- if [ "$TRAVIS_OS_NAME" = "osx" ]; brew install sdl2 sdl2_image sdl2_mixer sdl2_ttf; fi
+
+install:
+- cargo build --release
+
+script:
+- cargo test --release
 
 before_deploy:
 - bash package.sh
@@ -46,8 +40,8 @@ deploy:
   file:
   - super-jeff-$TRAVIS_TAG-$TRAVIS_OS_NAME.zip
   - super-jeff-$TRAVIS_TAG-$TRAVIS_OS_NAME.tar.gz
-  skip_cleanup: true
+  cleanup: false
   on:
     tags: true
-  api_key:
+  token:
     secure: QyZ2EXVWtHbeH1emdaA2nz1gGXSLQKqHeqM58vMQQKuY6A4icW2C4VeeQSmfDEpT1bUJcldcgwt5CieJhj5jCBpXhjIFS+9lT+ZQ/SlvM6ygaoLYbHe9n/MK1zAlkvfjk1RHsh7vp2fWcYhTYR3VxtC+OQq5wqqPg77Sp9hisPRJ1sa8IPYAH6NG9tY9SjaK+BS8rxDZEHyKzg/ztc4l8P7ve+aTSVSw32Ee3Q7rdfVZBmporJ5WyI1KoFaCBtxm/mRck7kgBUy8StvuNlIplbQWyLr+B0z+jN4P1nANZNMYJTzRv6p5cyB2w8xBU79qvqfV8JmRieozYpuOSPqq/QirPVQXTawKioFsWv/WLONOuVRYysVwXwuhDd4ufz/YXHyiIiKjY/abiAmcyB3COqbA8ZI8PBcSOlchg337tM9w6ZEFEiTLLwjNnfmJSZ5c01VRW8gS2ju/4hQ8GJ+SGjObI22NxfmGBUqiBuxjfoKynhNy31saswBZ9DPtgZmjSv7Kcr9lrXjcyvhDoXFl5P1l37/lXXB0ED3sXhG2SoCgSaFqDThg3eqJQZK5N7LDujPXKJwvY6p6zgCtlAdJWESSn+eaoYg3OHypD5p3Sae+Qb+4uQKpHWXYf5p18o1+9ukbe9HO+xm5oleluA39/7thVbyGqX5QnMot4TgZfc4=
