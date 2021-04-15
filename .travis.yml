@@ -45,7 +45,7 @@ deploy:
   file:
   - super-jeff-$TRAVIS_TAG-$TRAVIS_OS_NAME.zip
   - super-jeff-$TRAVIS_TAG-$TRAVIS_OS_NAME.tar.gz
-  cleanup: false
+  skip_cleanup: true
   on:
     tags: true
   token:
