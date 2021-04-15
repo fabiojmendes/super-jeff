@@ -6,6 +6,7 @@ use glam::Vec2;
 
 use crate::level::Tile;
 use crate::physics;
+use crate::sound::SoundEffect;
 
 #[derive(Debug)]
 pub struct Monkey {
@@ -110,7 +111,7 @@ impl Monkey {
         elapsed: f32,
         target: Vec2,
         tiles: &Vec<Tile>,
-        sounds: &mut Vec<&str>,
+        sounds: &mut Vec<SoundEffect>,
     ) {
         let mut rng = rand::thread_rng();
         if self.dead() {
@@ -132,7 +133,7 @@ impl Monkey {
             }
         } else if self.bananas_thrown >= self.bananas_before_rage {
             self.rage();
-            sounds.push("rage");
+            sounds.push(SoundEffect::Rage);
             self.bananas_before_rage = rng.gen_range(5..10);
         } else if self.ai_timer.elapsed() > self.next_throw {
             self.ai_timer += self.ai_timer.elapsed();
@@ -141,7 +142,7 @@ impl Monkey {
             let displacement = target - self.position;
             if displacement.x.abs() < Monkey::BANANA_MAX_DISTANCE {
                 self.throw_banana(displacement);
-                sounds.push("banana");
+                sounds.push(SoundEffect::Banana);
             }
         }
 

@@ -5,6 +5,7 @@ use std::time::Instant;
 
 use crate::level::Tile;
 use crate::physics;
+use crate::sound::SoundEffect;
 
 const PLAYER_SPEED: f32 = 30.0;
 const JUMP_SPEED: f32 = 15.0;
@@ -105,7 +106,7 @@ impl Player {
         keys: &HashSet<Keycode>,
         elapsed: f32,
         tiles: &Vec<Tile>,
-        sounds: &mut Vec<&str>,
+        sounds: &mut Vec<SoundEffect>,
     ) {
         // Drag
         self.apply_drag(elapsed);
@@ -126,7 +127,7 @@ impl Player {
                 Keycode::Space => {
                     if self.grounded() {
                         self.jump();
-                        sounds.push("jump");
+                        sounds.push(SoundEffect::Jump);
                     }
                 }
                 _ => {}

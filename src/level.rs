@@ -10,6 +10,7 @@ use sdl2::keyboard::Keycode;
 use crate::monkey::Monkey;
 use crate::physics;
 use crate::player::Player;
+use crate::sound::SoundEffect;
 
 #[derive(Debug)]
 pub struct Enemy {
@@ -162,7 +163,7 @@ impl Level {
         }
     }
 
-    pub fn update(&mut self, elapsed: f32, keys: &HashSet<Keycode>, sounds: &mut Vec<&str>) {
+    pub fn update(&mut self, elapsed: f32, keys: &HashSet<Keycode>, sounds: &mut Vec<SoundEffect>) {
         if !self.started || self.player.dead {
             return;
         }
@@ -181,7 +182,7 @@ impl Level {
 
         // Player dies by falling out of level bounds
         if self.player.position.y < self.min_bounds().y - self.player.sides.y * 2.0 {
-            sounds.push("fall");
+            sounds.push(SoundEffect::Fall);
             self.player.die();
         }
 
@@ -190,9 +191,9 @@ impl Level {
             let (head_pos, head_rect) = self.monkey.head();
             if self.player.attack(head_pos, head_rect) {
                 if self.monkey.damage(1) {
-                    sounds.push("hit");
+                    sounds.push(SoundEffect::Hit);
                 } else {
-                    sounds.push("click");
+                    sounds.push(SoundEffect::Click);
                 }
             } else if physics::collides(
                 self.player.position,
@@ -201,7 +202,7 @@ impl Level {
                 self.monkey.hitbox(),
             ) {
                 self.player.die();
-                sounds.push("dead");
+                sounds.push(SoundEffect::Dead);
             }
             if self.monkey.dead() {
                 self.score += 500;
@@ -213,7 +214,7 @@ impl Level {
         for b in &self.monkey.bananas {
             if physics::collides(self.player.position, self.player.hitbox(), b.position, b.sides) {
                 self.player.die();
-                sounds.push("dead");
+                sounds.push(SoundEffect::Dead);
             }
         }
 
@@ -221,7 +222,7 @@ impl Level {
             let (head_pos, head_rect) = e.head();
             if self.player.attack(head_pos, head_rect) {
                 e.damage(1);
-                sounds.push("hit");
+                sounds.push(SoundEffect::Hit);
             } else if physics::collides(
                 self.player.position,
                 self.player.hitbox(),
@@ -229,7 +230,7 @@ impl Level {
                 e.hitbox(),
             ) {
                 self.player.die();
-                sounds.push("dead");
+                sounds.push(SoundEffect::Dead);
             }
             if e.dead() {
                 self.score += 100;

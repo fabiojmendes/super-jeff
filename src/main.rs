@@ -5,15 +5,16 @@ mod monkey;
 mod physics;
 mod player;
 mod render;
+mod sound;
 
 use level::Level;
 use render::Camera;
 use render::{TextRenderer, TextureManager};
+use sound::SoundEffect;
 
 use glam::Vec2;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use sdl2::mixer::{self, Chunk};
 use sdl2::ttf;
 use std::env;
 use std::time::Instant;
@@ -55,24 +56,8 @@ fn main() -> Result<(), String> {
 
     // Audio Subsystem
     let _audio = sdl_context.audio()?;
-    let frequency = 44_100;
-    let format = mixer::AUDIO_S16LSB; // signed 16 bit samples, in little-endian byte order
-    let channels = mixer::DEFAULT_CHANNELS; // Stereo
-    let chunk_size = 1024;
-    sdl2::mixer::open_audio(frequency, format, channels, chunk_size)?;
-    mixer::allocate_channels(8);
-
-    let jump = Chunk::from_file("assets/jump.wav")?;
-    let hit = Chunk::from_file("assets/hit.wav")?;
-    let click = Chunk::from_file("assets/click.wav")?;
-    let dead = Chunk::from_file("assets/dead.wav")?;
-    let fall = Chunk::from_file("assets/fall.wav")?;
-    let banana = Chunk::from_file("assets/banana.wav")?;
-    let rage = Chunk::from_file("assets/rage.wav")?;
-
-    let music = mixer::Music::from_file("assets/music.ogg")?;
-    mixer::Music::set_volume(24);
-    music.play(-1)?;
+    let sound_module = sound::Sound::load()?;
+    sound_module.play_music()?;
 
     let mut level = Level::from_file("assets/level.txt") //
         .expect("Error loading level from file");
@@ -111,26 +96,10 @@ fn main() -> Result<(), String> {
             .filter_map(Keycode::from_scancode)
             .collect();
 
-        let mut sounds = Vec::<&str>::new();
+        let mut sounds = Vec::<SoundEffect>::new();
         level.update(elapsed, &keys, &mut sounds);
 
-        for s in sounds {
-            let sound = match s {
-                "jump" => Some(&jump),
-                "hit" => Some(&hit),
-                "click" => Some(&click),
-                "dead" => Some(&dead),
-                "fall" => Some(&fall),
-                "banana" => Some(&banana),
-                "rage" => Some(&rage),
-                _ => None,
-            };
-            if let Some(s) = sound {
-                if let Err(e) = mixer::Channel::all().play(s, 0) {
-                    println!("Error playing sound: {}", e);
-                }
-            }
-        }
+        sound_module.play_sounds(sounds);
 
         if level.trapped {
             let bottom_right = Vec2::new(level.max_bounds().x, level.min_bounds().y);
