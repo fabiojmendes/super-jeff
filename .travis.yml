@@ -1,19 +1,26 @@
 language: rust
+
+rust:
+- stable
+
 os:
 - linux
 - windows
-rust:
-- stable
+
 jobs:
   allow_failures:
   - rust: nightly
   fast_finish: true
+
 before_install:
 - if [ "$TRAVIS_OS_NAME" = "windows" ]; then export LIB="./lib"; fi
+
 install:
 - cargo build --release
+
 script:
 - cargo test --release
+
 addons:
   apt:
     packages:
@@ -21,15 +28,14 @@ addons:
     - libsdl2-image-dev
     - libsdl2-mixer-dev
     - libsdl2-ttf-dev
+
 before_deploy:
 - bash package.sh
 
 deploy:
   provider: releases
   file_glob: true
-  file:
-  - super-jeff-*
-  - $TRAVIS_BUILD_DIR/super-jeff-*
+  file: $TRAVIS_BUILD_DIR/super-jeff-*.{tar.gz,zip}
   skip_cleanup: true
   on:
     tags: true
