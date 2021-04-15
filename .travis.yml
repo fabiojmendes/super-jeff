@@ -22,27 +22,14 @@ addons:
     - libsdl2-mixer-dev
     - libsdl2-ttf-dev
 before_deploy:
-- |-
-  FILE_NAME="super-jef-$TRAVIS_TAG-$TRAVIS_OS_NAME"
-  if [ "$TRAVIS_OS_NAME" = "windows" ]; then
-    mkdir super-jeff
-    cp target/release/super-jeff.exe ./super-jeff
-    cp -r assets ./super-jeff
-    cp lib/*.{dll,txt} ./super-jeff
-    ls -l super-jeff
-    tar -cavf $FILE_NAME.zip super-jeff
-  fi
-  if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-    tar -C target/release -cvf $FILE_NAME.tar super-jeff
-    tar -rf $FILE_NAME.tar assets
-    gzip $FILE_NAME.tar
-  fi
+- bash package.sh
+
 deploy:
   provider: releases
   file_glob: true
   file:
-    - super-jeff*.tar.gz
-    - super-jeff*.zip
+  - super-jeff-*
+  - $TRAVIS_BUILD_DIR/super-jeff-*
   skip_cleanup: true
   on:
     tags: true
