@@ -2,6 +2,7 @@
 authors = ["Fabio Mendes <fabiojmendes@gmail.com>"]
 edition = "2018"
 name = "super-jeff"
+repository = "https://github.com/fabiojmendes/super-jeff"
 version = "0.5.0"
 
 # See more keys and their definitions at
